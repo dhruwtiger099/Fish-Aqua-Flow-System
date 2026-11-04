@@ -720,32 +720,30 @@ button {
   }
 }
 
-/* Prominent Install App Button in Navbar */
+/* Install App Icon Button in Navbar */
 .navbar-install-btn {
   background: #0B7285 !important;
   color: #FFFFFF !important;
-  width: auto !important;
+  width: 36px !important;
   height: 36px !important;
-  min-width: unset !important;
-  padding: 0 12px !important;
-  border-radius: 10px !important;
-  border: none !important;
+  min-width: 36px !important;
+  max-width: 36px !important;
+  padding: 0 !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(8, 126, 164, 0.25) !important;
   display: inline-flex !important;
   align-items: center !important;
-  gap: 6px !important;
-  font-weight: 700 !important;
-  font-size: 0.8rem !important;
-  white-space: nowrap !important;
+  justify-content: center !important;
   cursor: pointer !important;
-  box-shadow: 0 3px 12px rgba(11, 114, 133, 0.4) !important;
+  box-shadow: 0 2px 8px rgba(11, 114, 133, 0.35) !important;
   flex-shrink: 0 !important;
+  transition: transform 0.15s ease, background 0.15s ease !important;
+}
+
+.navbar-install-btn:hover {
+  background: #085F70 !important;
 }
 
 .navbar-install-btn:active {
-  transform: scale(0.96);
-}
-
-.navbar-install-btn span {
-  color: #FFFFFF !important;
-  font-weight: 700 !important;
+  transform: scale(0.92) !important;
 }

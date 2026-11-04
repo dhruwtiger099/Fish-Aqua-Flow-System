@@ -196,7 +196,7 @@ export default function Navbar({ onToggleSidebar, onOpenSearchModal }) {
           <Search size={16} />
         </button>
 
-        {/* Install PWA App Button */}
+        {/* Install PWA App Icon Button */}
         {!isStandalone && (
           <button
             onClick={handleInstallClick}
@@ -205,8 +205,7 @@ export default function Navbar({ onToggleSidebar, onOpenSearchModal }) {
             aria-label="Install Aqua Flow App"
             title="Install Aqua Flow App"
           >
-            <Download size={15} color="#FFFFFF" />
-            <span>Install App</span>
+            <Download size={18} color="#FFFFFF" strokeWidth={2.4} />
           </button>
         )}
 
