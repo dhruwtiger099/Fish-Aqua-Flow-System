@@ -6,22 +6,36 @@ export default function Navbar({ onToggleSidebar, onOpenSearchModal }) {
   const { currentUser, ponds } = useFarm();
   const [showAlertsMenu, setShowAlertsMenu] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
+    const isApp =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true;
+    setIsStandalone(isApp);
+
     const handler = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
+      window.__pwaDeferredPrompt = e;
     };
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setDeferredPrompt(null);
+    const promptEvent = deferredPrompt || window.__pwaDeferredPrompt;
+    if (promptEvent) {
+      promptEvent.prompt();
+      const { outcome } = await promptEvent.userChoice;
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+        window.__pwaDeferredPrompt = null;
+      }
+    } else {
+      alert(
+        'To install AquaFlow on your phone:\n\n1. Tap your browser menu (3 dots ⋮ at top right)\n2. Select "Install app" or "Add to Home screen" 📲'
+      );
     }
   };
 
@@ -139,7 +153,7 @@ export default function Navbar({ onToggleSidebar, onOpenSearchModal }) {
           fontSize: '0.82rem',
           boxShadow: 'inset 0 1px 2px rgba(6, 59, 92, 0.03)',
         }}
-        className="hide-on-mobile-sm"
+        className="quick-search-desktop"
       >
         <Search size={15} color="#087EA4" />
         <span
@@ -183,35 +197,16 @@ export default function Navbar({ onToggleSidebar, onOpenSearchModal }) {
         </button>
 
         {/* Install PWA App Button */}
-        {deferredPrompt && (
+        {!isStandalone && (
           <button
             onClick={handleInstallClick}
+            type="button"
+            className="navbar-install-btn"
             aria-label="Install Aqua Flow App"
             title="Install Aqua Flow App"
-            style={{
-              padding: '0 10px',
-              height: '36px',
-              minWidth: '36px',
-              background: 'linear-gradient(135deg, #063B5C 0%, #087EA4 100%)',
-              border: '1px solid rgba(8, 126, 164, 0.3)',
-              borderRadius: '10px',
-              color: '#FFFFFF',
-              fontWeight: 700,
-              fontSize: '0.78rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              cursor: 'pointer',
-              flexShrink: 0,
-              boxShadow: '0 2px 8px rgba(8, 126, 164, 0.25)',
-              whiteSpace: 'nowrap',
-            }}
           >
-            <Download size={16} color="#FFFFFF" />
-            <span className="hide-on-mobile-sm" style={{ whiteSpace: 'nowrap' }}>
-              Install App
-            </span>
+            <Download size={15} color="#FFFFFF" />
+            <span>Install App</span>
           </button>
         )}
 
