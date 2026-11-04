@@ -1,10 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFarm } from '../context/FarmContext';
-import { Menu, Search, Bell, Waves, CircleUserRound } from 'lucide-react';
+import { Menu, Search, Bell, Waves, CircleUserRound, Download } from 'lucide-react';
 
 export default function Navbar({ onToggleSidebar, onOpenSearchModal }) {
   const { currentUser, ponds } = useFarm();
   const [showAlertsMenu, setShowAlertsMenu] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+    }
+  };
 
   const activeAlerts = ponds.flatMap((p) =>
     (p.alerts || []).map((a) => ({ ...a, pondName: p.name })),
@@ -162,6 +181,33 @@ export default function Navbar({ onToggleSidebar, onOpenSearchModal }) {
         >
           <Search size={16} />
         </button>
+
+        {/* Install PWA App Button */}
+        {deferredPrompt && (
+          <button
+            onClick={handleInstallClick}
+            aria-label="Install Aqua Flow App"
+            title="Install Aqua Flow App"
+            style={{
+              padding: '6px 12px',
+              height: '36px',
+              background: '#0B7285',
+              border: 'none',
+              borderRadius: '10px',
+              color: '#FFFFFF',
+              fontWeight: 600,
+              fontSize: '0.8rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(11, 114, 133, 0.3)',
+            }}
+          >
+            <Download size={15} />
+            <span style={{ fontSize: '0.78rem' }}>Install App</span>
+          </button>
+        )}
 
         {/* Alerts */}
         <div style={{ position: 'relative' }}>
