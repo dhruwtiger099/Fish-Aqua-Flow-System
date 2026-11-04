@@ -1,9 +1,22 @@
+import { createClient } from '@supabase/supabase-js';
 import { parseOrThrow, signInSchema, signUpSchema } from '../shared/lib/schemas';
 
-// The browser talks to the server auth boundary. The server must set the
-// short-lived access and rotating refresh tokens as Secure, HttpOnly cookies.
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+export const supabase =
+  SUPABASE_URL && SUPABASE_KEY
+    ? createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+        },
+      })
+    : null;
+
 const AUTH_BASE = import.meta.env.VITE_AUTH_API_URL || '/api/auth';
-const USE_LOCAL_DEV_AUTH = import.meta.env.DEV && !import.meta.env.VITE_AUTH_API_URL;
+const USE_LOCAL_DEV_AUTH = import.meta.env.DEV && !import.meta.env.VITE_AUTH_API_URL && !supabase;
 const LOCAL_ACCOUNT_KEY = 'aquaflow_dev_account';
 const LOCAL_SESSION_KEY = 'aquaflow_dev_session';
 
@@ -95,19 +108,73 @@ async function authRequest(path, options = {}) {
   return data;
 }
 
-export function signIn(credentials) {
+export async function signIn(credentials) {
   const input = parseOrThrow(signInSchema, credentials);
+  if (supabase) {
+    const email = input.identifier.trim();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password: input.password,
+    });
+    if (error) {
+      if (error.message.toLowerCase().includes('invalid login credentials')) {
+        throw new Error('Invalid email or password.');
+      }
+      if (error.message.toLowerCase().includes('email not confirmed')) {
+        throw new Error('Please confirm your email or disable email confirmation in Supabase Auth.');
+      }
+      throw new Error(error.message || 'Authentication failed.');
+    }
+    const user = data.user;
+    return {
+      ok: true,
+      user: {
+        name: user.user_metadata?.name || user.email?.split('@')[0] || 'Farm User',
+        username: user.user_metadata?.username || user.email,
+        email: user.email,
+      },
+    };
+  }
   if (USE_LOCAL_DEV_AUTH) return localSignIn(input);
   return authRequest('/login', { method: 'POST', body: JSON.stringify(input) });
 }
 
-export function signUp(credentials) {
+export async function signUp(credentials) {
   const input = parseOrThrow(signUpSchema, credentials);
+  if (supabase) {
+    const { data, error } = await supabase.auth.signUp({
+      email: input.email.trim(),
+      password: input.password,
+      options: {
+        data: {
+          name: input.name.trim(),
+          username: input.username.trim(),
+        },
+      },
+    });
+    if (error) {
+      throw new Error(error.message || 'Failed to create account.');
+    }
+    return {
+      ok: true,
+      requiresEmailVerification: !data.session,
+      user: {
+        name: input.name,
+        username: input.username,
+        email: input.email,
+      },
+    };
+  }
   if (USE_LOCAL_DEV_AUTH) return localSignUp(input);
   return authRequest('/signup', { method: 'POST', body: JSON.stringify(input) });
 }
 
-export function signOut() {
+export async function signOut() {
+  if (supabase) {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    return { ok: true };
+  }
   if (USE_LOCAL_DEV_AUTH) {
     sessionStorage.removeItem(LOCAL_SESSION_KEY);
     localStorage.removeItem(LOCAL_SESSION_KEY);
@@ -115,7 +182,23 @@ export function signOut() {
   }
   return authRequest('/logout', { method: 'POST' });
 }
-export function getSession() {
+
+export async function getSession() {
+  if (supabase) {
+    const { data, error } = await supabase.auth.getSession();
+    if (error || !data?.session?.user) {
+      throw new Error('No session');
+    }
+    const user = data.session.user;
+    return {
+      ok: true,
+      user: {
+        name: user.user_metadata?.name || user.email?.split('@')[0] || 'Farm User',
+        username: user.user_metadata?.username || user.email,
+        email: user.email,
+      },
+    };
+  }
   if (USE_LOCAL_DEV_AUTH) {
     const account = JSON.parse(localStorage.getItem(LOCAL_ACCOUNT_KEY) || 'null');
     return localSessionExists() && account
