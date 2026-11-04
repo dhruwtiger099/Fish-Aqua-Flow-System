@@ -69,7 +69,9 @@ export default function Toast() {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
             {getIcon(toast.type)}
-            <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#0F2942', lineHeight: 1.35 }}>
+            <span
+              style={{ fontSize: '0.88rem', fontWeight: 600, color: '#0F2942', lineHeight: 1.35 }}
+            >
               {toast.message}
             </span>
           </div>

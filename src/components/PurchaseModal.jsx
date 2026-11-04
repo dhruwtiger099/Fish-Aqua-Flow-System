@@ -25,6 +25,7 @@ export default function PurchaseModal({ onClose }) {
   const [category, setCategory] = useState('Feed');
   const [itemName, setItemName] = useState('');
   const [supplier, setSupplier] = useState('');
+  const [supplierMobile, setSupplierMobile] = useState('');
   const [quantity, setQuantity] = useState('');
   const [unit, setUnit] = useState('Kg');
   const [unitPrice, setUnitPrice] = useState('');
@@ -39,7 +40,7 @@ export default function PurchaseModal({ onClose }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const effectiveUnit = unit;
-  const purchaseQuantity = purchaseType === 'Fish Species' ? fishCount : quantity;
+  const purchaseQuantity = purchaseType === 'Fish Species' ? fishWeight : quantity;
 
   // Find currently selected item
   const selectedItem = useMemo(() => {
@@ -59,12 +60,14 @@ export default function PurchaseModal({ onClose }) {
     if (item) {
       setUnitPrice(item.costPerUnit || 0);
       if (item.supplier) setSupplier(item.supplier);
+      if (item.supplierPhone) setSupplierMobile(item.supplierPhone);
+      if (purchaseType === 'Fish Species') setFishName(item.name);
     }
   };
 
   // Real-time calculations
   const subtotal = useMemo(() => {
-    const q = Number(quantity) || 0;
+    const q = Number(purchaseQuantity) || 0;
     const p = Number(unitPrice) || 0;
     return q * p;
   }, [quantity, unitPrice]);
@@ -75,7 +78,7 @@ export default function PurchaseModal({ onClose }) {
   }, [subtotal, taxRate]);
 
   const totalAmount = useMemo(() => {
-    const sf = shippingMode === 'Freight' ? (Number(shippingFee) || 0) : 0;
+    const sf = shippingMode === 'Freight' ? Number(shippingFee) || 0 : 0;
     return subtotal + taxAmount + sf;
   }, [subtotal, taxAmount, shippingFee, shippingMode]);
 
@@ -99,7 +102,8 @@ export default function PurchaseModal({ onClose }) {
     }
     addPurchase({
       itemId: selectedItemId,
-      itemName: purchaseType === 'Fish Species' ? '' : (itemName || selectedItem?.name || 'Bulk Supply'),
+      itemName:
+        purchaseType === 'Fish Species' ? '' : itemName || selectedItem?.name || 'Bulk Supply',
       category,
       purchaseType,
       fishWeight: purchaseType === 'Fish Species' ? Number(fishWeight) : '',
@@ -107,6 +111,7 @@ export default function PurchaseModal({ onClose }) {
       fishName: purchaseType === 'Fish Species' ? fishName : '',
       itemSku: selectedItem?.sku || '',
       supplier,
+      supplierMobile,
       quantity: Number(purchaseQuantity),
       unit,
       unitPrice: Number(unitPrice),
@@ -130,7 +135,10 @@ export default function PurchaseModal({ onClose }) {
         nurseryDate: new Date().toISOString().slice(0, 10),
         nurseryWeight: Number(fishWeight) || 0,
         nurseryFishCount: Number(fishCount) || 0,
-        pondADate: '', pondAWeight: 0, pondBDate: '', pondBWeight: 0,
+        pondADate: '',
+        pondAWeight: 0,
+        pondBDate: '',
+        pondBWeight: 0,
         note: `Purchased via ${invoiceNumber || 'Fish Buy Purchase Order'}`,
       };
       localStorage.setItem(key, JSON.stringify([newCycle, ...existingCycles]));
@@ -142,7 +150,7 @@ export default function PurchaseModal({ onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
-        className="modal-content"
+        className="modal-content purchase-order-modal"
         onClick={(e) => e.stopPropagation()}
         style={{ maxWidth: '680px', padding: '26px' }}
       >
@@ -180,7 +188,11 @@ export default function PurchaseModal({ onClose }) {
             </div>
           </div>
 
-          <button onClick={onClose} className="btn-icon" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+          <button
+            onClick={onClose}
+            className="btn-icon"
+            style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+          >
             <X size={20} color="#063B5C" />
           </button>
         </div>
@@ -200,28 +212,45 @@ export default function PurchaseModal({ onClose }) {
               <h3 style={{ fontSize: '1.1rem', color: '#063B5C', marginBottom: '12px' }}>
                 Confirm Purchase Order Details
               </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.9rem' }}>
+              <div
+                style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.9rem' }}
+              >
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#547185' }}>Item:</span>
-                  <span style={{ fontWeight: 700, color: '#063B5C' }}>{itemName || fishName || selectedItem?.name || 'Bulk Supply'}</span>
+                  <span style={{ fontWeight: 700, color: '#063B5C' }}>
+                    {itemName || fishName || selectedItem?.name || 'Bulk Supply'}
+                  </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#547185' }}>Supplier:</span>
                   <span style={{ fontWeight: 600, color: '#063B5C' }}>{supplier}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#547185' }}>Vendor Mobile:</span>
+                  <span style={{ fontWeight: 600, color: '#063B5C' }}>{supplierMobile || '—'}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#547185' }}>Quantity to Add:</span>
                   <span style={{ fontWeight: 700, color: '#087EA4' }}>
-                    {purchaseQuantity} {purchaseType === 'Fish Species' ? 'fish' : effectiveUnit}
+                    {purchaseType === 'Fish Species'
+                      ? `${fishWeight} kg / ${fishCount} fish`
+                      : `${purchaseQuantity} ${effectiveUnit}`}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#547185' }}>Unit Rate:</span>
-                  <span style={{ fontWeight: 600, color: '#063B5C' }}>₹{Number(unitPrice).toLocaleString('en-IN')} / {unit}</span>
+                  <span style={{ fontWeight: 600, color: '#063B5C' }}>
+                    ₹{Number(unitPrice).toLocaleString('en-IN')} / {unit}
+                  </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#547185' }}>Inventory Effect:</span>
-                  <span style={{ fontWeight: 700, color: status === 'Received' ? '#16A085' : '#E9A23B' }}>
+                  <span
+                    style={{
+                      fontWeight: 700,
+                      color: status === 'Received' ? '#16A085' : '#E9A23B',
+                    }}
+                  >
                     {status === 'Received'
                       ? `+${purchaseQuantity} ${purchaseType === 'Fish Species' ? 'fish' : effectiveUnit} will be added immediately`
                       : 'Pending delivery (will not alter stock yet)'}
@@ -267,32 +296,101 @@ export default function PurchaseModal({ onClose }) {
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label">Purchase Type <span className="required-star">*</span></label>
-              <select className="form-select" value={purchaseType} onChange={(e) => { const next = e.target.value; setPurchaseType(next); setCategory(next); setSelectedItemId(''); setItemName(''); if (next === 'Fish Species') setUnit('Kg'); }}>
-                {(masterData.category.length ? masterData.category : ['Feed', 'Water Treatment', 'Emergency Supplies', 'Supplements', 'Equipment', 'Fish Species']).map((value) => <option key={value}>{value}</option>)}
+              <label className="form-label">
+                Purchase Type <span className="required-star">*</span>
+              </label>
+              <select
+                className="form-select"
+                value={purchaseType}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setPurchaseType(next);
+                  setCategory(next);
+                  setSelectedItemId('');
+                  setItemName('');
+                  if (next === 'Fish Species') setUnit('Kg');
+                }}
+              >
+                {(masterData.category.length
+                  ? masterData.category
+                  : [
+                      'Feed',
+                      'Water Treatment',
+                      'Emergency Supplies',
+                      'Supplements',
+                      'Equipment',
+                      'Fish Species',
+                    ]
+                ).map((value) => (
+                  <option key={value}>{value}</option>
+                ))}
               </select>
             </div>
             {purchaseType === 'Fish Species' && (
               <>
                 <div className="form-group">
-                  <label className="form-label">Initial Total Weight (kg) <span className="required-star">*</span></label>
-                  <input className="form-input" type="number" min="0" step="any" value={fishWeight} onChange={(e) => setFishWeight(e.target.value)} placeholder="e.g. 12.5" required />
+                  <label className="form-label">
+                    Initial Total Weight (kg) <span className="required-star">*</span>
+                  </label>
+                  <input
+                    className="form-input"
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={fishWeight}
+                    onChange={(e) => setFishWeight(e.target.value)}
+                    placeholder="e.g. 12.5"
+                    required
+                  />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Fish Count <span className="required-star">*</span></label>
-                  <input className="form-input" type="number" min="1" step="1" value={fishCount} onChange={(e) => setFishCount(e.target.value)} placeholder="e.g. 500" required />
+                  <label className="form-label">
+                    Fish Count <span className="required-star">*</span>
+                  </label>
+                  <input
+                    className="form-input"
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={fishCount}
+                    onChange={(e) => setFishCount(e.target.value)}
+                    placeholder="e.g. 500"
+                    required
+                  />
                 </div>
               </>
             )}
             <div className="form-group">
-              <label className="form-label">{purchaseType === 'Fish Species' ? 'Fish Name / Species' : 'Item / Supply Name'} <span className="required-star">*</span></label>
+              <label className="form-label">
+                {purchaseType === 'Fish Species' ? 'Fish Name / Species' : 'Item / Supply Name'}{' '}
+                <span className="required-star">*</span>
+              </label>
               {purchaseType === 'Fish Species' ? (
-                <input className="form-input" value={fishName} onChange={(e) => setFishName(e.target.value)} placeholder="e.g. Tilapia Fingerlings" required />
+                <select
+                  className="form-select"
+                  value={selectedItemId}
+                  onChange={handleItemChange}
+                  required
+                >
+                  <option value="">Select fish species</option>
+                  {matchingItems.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.sku} — {item.name}
+                    </option>
+                  ))}
+                </select>
               ) : (
-                <select className="form-select" value={selectedItemId} onChange={handleItemChange} required>
+                <select
+                  className="form-select"
+                  value={selectedItemId}
+                  onChange={handleItemChange}
+                  required
+                >
                   <option value="">Select SKU &amp; item name</option>
                   {matchingItems.map((item) => (
-                    <option key={item.id} value={item.id}>{item.sku} — {item.name}</option>
+                    <option key={item.id} value={item.id}>
+                      {item.sku} — {item.name}
+                    </option>
                   ))}
                 </select>
               )}
@@ -302,7 +400,10 @@ export default function PurchaseModal({ onClose }) {
             </div>
 
             {/* Supplier & Invoice */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div
+              className="purchase-form-grid purchase-supplier-grid"
+              style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}
+            >
               <div className="form-group">
                 <label className="form-label">
                   Vendor / Supplier <span className="required-star">*</span>
@@ -313,6 +414,17 @@ export default function PurchaseModal({ onClose }) {
                   value={supplier}
                   onChange={(e) => setSupplier(e.target.value)}
                   required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Vendor Mobile</label>
+                <input
+                  type="tel"
+                  className="form-input"
+                  value={supplierMobile}
+                  onChange={(e) => setSupplierMobile(e.target.value)}
+                  placeholder="e.g. +91 98765 43210"
                 />
               </div>
 
@@ -328,10 +440,16 @@ export default function PurchaseModal({ onClose }) {
             </div>
 
             {/* Quantity & Unit price with Unit preview */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div
+              className="purchase-form-grid purchase-quantity-grid"
+              style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}
+            >
               <div className="form-group">
-                  <label className="form-label">
-                    Quantity ({effectiveUnit}) <span className="required-star">*</span>
+                <label className="form-label">
+                  {purchaseType === 'Fish Species'
+                    ? 'Purchase Weight (kg)'
+                    : `Quantity (${effectiveUnit})`}{' '}
+                  <span className="required-star">*</span>
                 </label>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <input
@@ -340,17 +458,33 @@ export default function PurchaseModal({ onClose }) {
                     step="any"
                     inputMode="decimal"
                     className="form-input"
-                    value={quantity}
+                    value={purchaseType === 'Fish Species' ? fishWeight : quantity}
                     onChange={(e) => setQuantity(e.target.value)}
-                    required
+                    required={purchaseType !== 'Fish Species'}
+                    readOnly={purchaseType === 'Fish Species'}
                     style={{ flex: 1 }}
                   />
-                  {purchaseType !== 'Fish Species' && <select className="form-select" value={unit} onChange={(e) => setUnit(e.target.value)} style={{ width: '112px' }} aria-label="Quantity unit">
-                    {(masterData.unit.length ? masterData.unit : ['Kg', 'Pcs', 'Bag', 'Packet', 'MT', 'Ltr']).map((value) => <option key={value}>{value}</option>)}
-                  </select>}
+                  {purchaseType !== 'Fish Species' && (
+                    <select
+                      className="form-select"
+                      value={unit}
+                      onChange={(e) => setUnit(e.target.value)}
+                      style={{ width: '112px' }}
+                      aria-label="Quantity unit"
+                    >
+                      {(masterData.unit.length
+                        ? masterData.unit
+                        : ['Kg', 'Pcs', 'Bag', 'Packet', 'MT', 'Ltr']
+                      ).map((value) => (
+                        <option key={value}>{value}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
                 <div className="form-hint">
-                  Unit will be recorded in {effectiveUnit}
+                  {purchaseType === 'Fish Species'
+                    ? 'Initial total weight will be used for purchase amount.'
+                    : `Unit will be recorded in ${effectiveUnit}`}
                 </div>
               </div>
 
@@ -375,7 +509,10 @@ export default function PurchaseModal({ onClose }) {
             </div>
 
             {/* Tax, Shipping & Status */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+            <div
+              className="purchase-form-grid purchase-tax-grid"
+              style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}
+            >
               <div className="form-group">
                 <label className="form-label">Tax Rate (%)</label>
                 <input
@@ -390,12 +527,24 @@ export default function PurchaseModal({ onClose }) {
 
               <div className="form-group">
                 <label className="form-label">Shipping / Freight</label>
-                <select className="form-select" value={shippingMode} onChange={(e) => setShippingMode(e.target.value)}>
+                <select
+                  className="form-select"
+                  value={shippingMode}
+                  onChange={(e) => setShippingMode(e.target.value)}
+                >
                   <option value="Self">Self</option>
                   <option value="Freight">Freight</option>
                 </select>
                 {shippingMode === 'Freight' && (
-                  <input type="number" min="0" step="any" className="form-input" value={shippingFee} onChange={(e) => setShippingFee(e.target.value)} placeholder="Freight amount (₹)" />
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    className="form-input"
+                    value={shippingFee}
+                    onChange={(e) => setShippingFee(e.target.value)}
+                    placeholder="Freight amount (₹)"
+                  />
                 )}
               </div>
 
@@ -423,27 +572,64 @@ export default function PurchaseModal({ onClose }) {
                 margin: '10px 0 16px 0',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', color: '#063B5C', fontWeight: 700, fontSize: '0.86rem' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  marginBottom: '8px',
+                  color: '#063B5C',
+                  fontWeight: 700,
+                  fontSize: '0.86rem',
+                }}
+              >
                 <Calculator size={15} color="#087EA4" />
                 <span>Real-Time Order Calculation</span>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', textAlign: 'center' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, 1fr)',
+                  gap: '8px',
+                  textAlign: 'center',
+                }}
+              >
                 <div>
                   <div style={{ fontSize: '0.72rem', color: '#547185' }}>Base Items</div>
-                  <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#063B5C' }}>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                  <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#063B5C' }}>
+                    ₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </div>
                 </div>
                 <div>
                   <div style={{ fontSize: '0.72rem', color: '#547185' }}>Tax ({taxRate}%)</div>
-                  <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#063B5C' }}>₹{taxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                  <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#063B5C' }}>
+                    ₹{taxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </div>
                 </div>
                 <div>
                   <div style={{ fontSize: '0.72rem', color: '#547185' }}>Shipping</div>
-                  <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#063B5C' }}>₹{(shippingMode === 'Freight' ? Number(shippingFee || 0) : 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                  <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#063B5C' }}>
+                    ₹
+                    {(shippingMode === 'Freight' ? Number(shippingFee || 0) : 0).toLocaleString(
+                      'en-IN',
+                      { minimumFractionDigits: 2 },
+                    )}
+                  </div>
                 </div>
-                <div style={{ background: 'rgba(34, 211, 238, 0.18)', borderRadius: '10px', padding: '4px' }}>
-                  <div style={{ fontSize: '0.72rem', color: '#087EA4', fontWeight: 700 }}>Total Due</div>
-                  <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#063B5C' }}>₹{totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                <div
+                  style={{
+                    background: 'rgba(34, 211, 238, 0.18)',
+                    borderRadius: '10px',
+                    padding: '4px',
+                  }}
+                >
+                  <div style={{ fontSize: '0.72rem', color: '#087EA4', fontWeight: 700 }}>
+                    Total Due
+                  </div>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#063B5C' }}>
+                    ₹{totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </div>
                 </div>
               </div>
             </div>
@@ -457,8 +643,14 @@ export default function PurchaseModal({ onClose }) {
                 accept=".pdf,.jpg,.jpeg,.png,.webp,.xls,.xlsx"
                 onChange={(e) => setInvoiceAttachment(e.target.files?.[0] || null)}
               />
-              <div className="form-hint">PDF, image ya Excel bill attach karein. Max recommended size: 10 MB.</div>
-              {invoiceAttachment && <div className="form-hint" style={{ color: '#087EA4', fontWeight: 600 }}>Selected: {invoiceAttachment.name}</div>}
+              <div className="form-hint">
+                Attach a PDF, image or Excel invoice. Maximum recommended size: 10 MB.
+              </div>
+              {invoiceAttachment && (
+                <div className="form-hint" style={{ color: '#087EA4', fontWeight: 600 }}>
+                  Selected: {invoiceAttachment.name}
+                </div>
+              )}
             </div>
 
             <div className="form-group">

@@ -15,15 +15,20 @@ import SalesView from './views/SalesView';
 import ReportsView from './views/ReportsView';
 import ExpensesView from './views/ExpensesView';
 import FishTransfersView from './views/FishTransfersView';
+import LoginView from './views/LoginView';
 
 import PondDetailModal from './components/PondDetailModal';
 import PurchaseModal from './components/PurchaseModal';
 import FeedingModal from './components/FeedingModal';
 import HarvestSaleModal from './components/HarvestSaleModal';
 import SearchModal from './components/SearchModal';
+import { getSession, signIn, signUp } from './services/auth';
 
 export default function App() {
-  const { activeTab, selectedPondModal, setSelectedPondModal } = useFarm();
+  const { activeTab, selectedPondModal, setSelectedPondModal, syncState, setCurrentUser } =
+    useFarm();
+  const [authenticated, setAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
@@ -31,6 +36,50 @@ export default function App() {
   const [showHarvestModal, setShowHarvestModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [modalTargetPond, setModalTargetPond] = useState(null);
+
+  useEffect(() => {
+    getSession()
+      .then((session) => {
+        if (session.user?.name) {
+          setCurrentUser({
+            id: 'authenticated-user',
+            name: session.user.name,
+            role: 'Farm User',
+            avatar: session.user.name
+              .split(/\s+/)
+              .map((part) => part[0])
+              .join('')
+              .slice(0, 2)
+              .toUpperCase(),
+          });
+        }
+        setAuthenticated(true);
+      })
+      .catch(() => setAuthenticated(false))
+      .finally(() => setAuthLoading(false));
+  }, []);
+
+  const handleLogin = async ({ identifier, password, remember }) => {
+    const session = await signIn({ identifier, password, remember });
+    if (session.user?.name) {
+      setCurrentUser({
+        id: 'authenticated-user',
+        name: session.user.name,
+        role: 'Farm User',
+        avatar: session.user.name
+          .split(/\s+/)
+          .map((part) => part[0])
+          .join('')
+          .slice(0, 2)
+          .toUpperCase(),
+      });
+    }
+    setAuthenticated(true);
+  };
+
+  const handleSignup = async (details) => {
+    return signUp(details);
+  };
 
   // Desktop sidebar auto-open, mobile auto-close
   useEffect(() => {
@@ -109,6 +158,14 @@ export default function App() {
     };
   }, [isAnyModalOpen]);
 
+  if (authLoading)
+    return (
+      <div className="login-loading" role="status">
+        Checking secure farm session…
+      </div>
+    );
+  if (!authenticated) return <LoginView onLogin={handleLogin} onSignup={handleSignup} />;
+
   const renderActiveView = () => {
     switch (activeTab) {
       case 'dashboard':
@@ -121,29 +178,13 @@ export default function App() {
           />
         );
       case 'feeding':
-        return (
-          <FeedingView
-            onOpenFeeding={() => openFeedingForPond(null)}
-          />
-        );
+        return <FeedingView onOpenFeeding={() => openFeedingForPond(null)} />;
       case 'inventory':
-        return (
-          <InventoryView
-            onOpenPurchase={openPurchase}
-          />
-        );
+        return <InventoryView onOpenPurchase={openPurchase} />;
       case 'purchases':
-        return (
-          <PurchasesView
-            onOpenPurchase={openPurchase}
-          />
-        );
+        return <PurchasesView onOpenPurchase={openPurchase} />;
       case 'sales':
-        return (
-          <SalesView
-            onOpenHarvest={() => openHarvestForPond(null)}
-          />
-        );
+        return <SalesView onOpenHarvest={() => openHarvestForPond(null)} />;
       case 'reports':
         return <ReportsView />;
       case 'expenses':
@@ -174,10 +215,7 @@ export default function App() {
       <WaterRipple />
 
       {/* Deep Ocean Sidebar Navigation */}
-      <Sidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main Content Area */}
       <div
@@ -202,11 +240,14 @@ export default function App() {
             setShowSearchModal(true);
           }}
         />
+        {syncState.status === 'error' && (
+          <div className="data-sync-banner" role="status">
+            {syncState.message}
+          </div>
+        )}
 
         {/* View Body with bottom safe padding for mobile bottom bar */}
-        <main className="main-content-area">
-          {renderActiveView()}
-        </main>
+        <main className="main-content-area">{renderActiveView()}</main>
 
         {/* Ocean Glass Footer (Desktop) */}
         <footer
@@ -222,10 +263,12 @@ export default function App() {
             WebkitBackdropFilter: 'blur(10px)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-            <span>🌊 <strong>AquaFlow FMS</strong> — Enterprise Aquaculture System</span>
-            <span>•</span>
-            <span style={{ color: '#16A085', fontWeight: 600 }}>● All Sensors Online</span>
+          <div
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+          >
+            <span>
+              Copyright © 2026 <strong>Bhupendra Dhruw</strong>. All Rights Reserved.
+            </span>
           </div>
         </footer>
       </div>
@@ -243,32 +286,15 @@ export default function App() {
         />
       )}
 
-      {showPurchaseModal && (
-        <PurchaseModal
-          onClose={closeAllModals}
-        />
-      )}
+      {showPurchaseModal && <PurchaseModal onClose={closeAllModals} />}
 
-      {showFeedingModal && (
-        <FeedingModal
-          initialPond={modalTargetPond}
-          onClose={closeAllModals}
-        />
-      )}
+      {showFeedingModal && <FeedingModal initialPond={modalTargetPond} onClose={closeAllModals} />}
 
       {showHarvestModal && (
-        <HarvestSaleModal
-          initialPond={modalTargetPond}
-          onClose={closeAllModals}
-        />
+        <HarvestSaleModal initialPond={modalTargetPond} onClose={closeAllModals} />
       )}
 
-      {showSearchModal && (
-        <SearchModal
-          isOpen={showSearchModal}
-          onClose={closeAllModals}
-        />
-      )}
+      {showSearchModal && <SearchModal isOpen={showSearchModal} onClose={closeAllModals} />}
 
       {/* Toast notifications */}
       <Toast />

@@ -23,8 +23,14 @@ export default function SensorsView() {
     const deltaDo = (Math.random() * 0.4 - 0.2).toFixed(1);
     const deltaTemp = (Math.random() * 0.4 - 0.2).toFixed(1);
 
-    const newDo = Math.max(3.5, Math.min(8.5, parseFloat((selectedPond.waterQuality.do + Number(deltaDo)).toFixed(1))));
-    const newTemp = Math.max(24.0, Math.min(32.0, parseFloat((selectedPond.waterQuality.temp + Number(deltaTemp)).toFixed(1))));
+    const newDo = Math.max(
+      3.5,
+      Math.min(8.5, parseFloat((selectedPond.waterQuality.do + Number(deltaDo)).toFixed(1))),
+    );
+    const newTemp = Math.max(
+      24.0,
+      Math.min(32.0, parseFloat((selectedPond.waterQuality.temp + Number(deltaTemp)).toFixed(1))),
+    );
 
     updatePond(selectedPond.id, {
       waterQuality: {
@@ -39,12 +45,14 @@ export default function SensorsView() {
 
   const getDoStatus = (val) => {
     if (val >= 5.5) return { text: 'Optimal', badge: 'badge-active', color: '#16A085' };
-    if (val >= 4.5) return { text: 'Caution (Boost Aeration)', badge: 'badge-warning', color: '#E9A23B' };
+    if (val >= 4.5)
+      return { text: 'Caution (Boost Aeration)', badge: 'badge-warning', color: '#E9A23B' };
     return { text: 'Critical Oxygen Deficit', badge: 'badge-danger', color: '#E05260' };
   };
 
   const getPhStatus = (val) => {
-    if (val >= 6.8 && val <= 8.2) return { text: 'Optimal Balanced', badge: 'badge-active', color: '#16A085' };
+    if (val >= 6.8 && val <= 8.2)
+      return { text: 'Optimal Balanced', badge: 'badge-active', color: '#16A085' };
     return { text: 'Alkaline / Acidic Stress', badge: 'badge-warning', color: '#E9A23B' };
   };
 
@@ -115,10 +123,18 @@ export default function SensorsView() {
           style={{
             padding: '22px',
             border: `1.5px solid ${doStatus.color}`,
-            background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 247, 250, 0.7) 100%)',
+            background:
+              'linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 247, 250, 0.7) 100%)',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '10px',
+            }}
+          >
             <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#547185' }}>
               Dissolved Oxygen (DO)
             </span>
@@ -146,13 +162,21 @@ export default function SensorsView() {
               style={{
                 width: `${Math.min(100, (selectedPond.waterQuality.do / 8) * 100)}%`,
                 height: '100%',
-                background: 'linear-gradient(90deg, #E05260 0%, #E9A23B 40%, #16A085 70%, #22D3EE 100%)',
+                background:
+                  'linear-gradient(90deg, #E05260 0%, #E9A23B 40%, #16A085 70%, #22D3EE 100%)',
                 borderRadius: '6px',
               }}
             />
           </div>
 
-          <div style={{ fontSize: '0.74rem', color: '#547185', display: 'flex', justifyContent: 'space-between' }}>
+          <div
+            style={{
+              fontSize: '0.74rem',
+              color: '#547185',
+              display: 'flex',
+              justifyContent: 'space-between',
+            }}
+          >
             <span>Critical &lt; 4.0</span>
             <span>Safe Threshold &gt; 5.0</span>
             <span>Max 8.5</span>
@@ -164,10 +188,18 @@ export default function SensorsView() {
           className="glass-surface"
           style={{
             padding: '22px',
-            background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 247, 250, 0.7) 100%)',
+            background:
+              'linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 247, 250, 0.7) 100%)',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '10px',
+            }}
+          >
             <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#547185' }}>
               Water Temperature
             </span>
@@ -201,7 +233,14 @@ export default function SensorsView() {
             />
           </div>
 
-          <div style={{ fontSize: '0.74rem', color: '#547185', display: 'flex', justifyContent: 'space-between' }}>
+          <div
+            style={{
+              fontSize: '0.74rem',
+              color: '#547185',
+              display: 'flex',
+              justifyContent: 'space-between',
+            }}
+          >
             <span>Target: 26°C – 29°C</span>
             <span>Diurnal Swing: ±1.8°C</span>
           </div>
@@ -212,10 +251,18 @@ export default function SensorsView() {
           className="glass-surface"
           style={{
             padding: '22px',
-            background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 247, 250, 0.7) 100%)',
+            background:
+              'linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 247, 250, 0.7) 100%)',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '10px',
+            }}
+          >
             <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#547185' }}>
               Acidity / pH Balance
             </span>
@@ -249,7 +296,14 @@ export default function SensorsView() {
             />
           </div>
 
-          <div style={{ fontSize: '0.74rem', color: '#547185', display: 'flex', justifyContent: 'space-between' }}>
+          <div
+            style={{
+              fontSize: '0.74rem',
+              color: '#547185',
+              display: 'flex',
+              justifyContent: 'space-between',
+            }}
+          >
             <span>Target Range: 7.0 – 8.0</span>
             <span>Alkalinity: 120 mg/L</span>
           </div>
@@ -260,10 +314,18 @@ export default function SensorsView() {
           className="glass-surface"
           style={{
             padding: '22px',
-            background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 247, 250, 0.7) 100%)',
+            background:
+              'linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 247, 250, 0.7) 100%)',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '10px',
+            }}
+          >
             <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#547185' }}>
               Ammonia (NH3)
             </span>
@@ -297,7 +359,14 @@ export default function SensorsView() {
             />
           </div>
 
-          <div style={{ fontSize: '0.74rem', color: '#547185', display: 'flex', justifyContent: 'space-between' }}>
+          <div
+            style={{
+              fontSize: '0.74rem',
+              color: '#547185',
+              display: 'flex',
+              justifyContent: 'space-between',
+            }}
+          >
             <span>Safe &lt; 0.05 ppm</span>
             <span>Toxic Threshold 0.20 ppm</span>
           </div>
@@ -312,7 +381,14 @@ export default function SensorsView() {
           border: '1.5px solid rgba(8, 126, 164, 0.2)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '16px',
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Wind size={20} color="#087EA4" />
             <h2 style={{ fontSize: '1.25rem', color: '#063B5C' }}>
@@ -324,7 +400,13 @@ export default function SensorsView() {
           </span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '12px',
+          }}
+        >
           {Array.from({ length: selectedPond.aeratorsTotal }, (_, i) => {
             const isRunning = i < selectedPond.aeratorsActive;
             return (
@@ -332,7 +414,9 @@ export default function SensorsView() {
                 key={i}
                 style={{
                   background: isRunning ? 'rgba(34, 211, 238, 0.12)' : 'rgba(255, 255, 255, 0.6)',
-                  border: isRunning ? '1.5px solid rgba(8, 126, 164, 0.35)' : '1px solid rgba(8, 126, 164, 0.14)',
+                  border: isRunning
+                    ? '1.5px solid rgba(8, 126, 164, 0.35)'
+                    : '1px solid rgba(8, 126, 164, 0.14)',
                   borderRadius: '14px',
                   padding: '14px',
                   display: 'flex',
@@ -344,7 +428,13 @@ export default function SensorsView() {
                   <div style={{ fontWeight: 700, color: '#063B5C', fontSize: '0.92rem' }}>
                     Motor #{i + 1} ({i % 2 === 0 ? 'Paddlewheel' : 'Jet Aerator'})
                   </div>
-                  <div style={{ fontSize: '0.74rem', color: isRunning ? '#16A085' : '#7A97AA', fontWeight: 600 }}>
+                  <div
+                    style={{
+                      fontSize: '0.74rem',
+                      color: isRunning ? '#16A085' : '#7A97AA',
+                      fontWeight: 600,
+                    }}
+                  >
                     {isRunning ? '● Running 1,450 RPM' : '○ Standby'}
                   </div>
                 </div>
@@ -353,7 +443,9 @@ export default function SensorsView() {
                   className={`btn btn-sm ${isRunning ? 'btn-danger' : 'btn-primary'}`}
                   style={{ minHeight: '32px', padding: '4px 10px', fontSize: '0.78rem' }}
                   onClick={() => {
-                    const newCount = isRunning ? selectedPond.aeratorsActive - 1 : selectedPond.aeratorsActive + 1;
+                    const newCount = isRunning
+                      ? selectedPond.aeratorsActive - 1
+                      : selectedPond.aeratorsActive + 1;
                     updatePond(selectedPond.id, {
                       aeratorsActive: newCount,
                       aerationStatus: `${newCount}/${selectedPond.aeratorsTotal} Aerators Active`,

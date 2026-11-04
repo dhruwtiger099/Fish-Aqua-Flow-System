@@ -113,13 +113,16 @@ export default function WaterRipple() {
 
       // Soft water displacement: lift 4-6px and slight realistic buoyant tilt 1.2deg
       const tilt = fromLeft ? '1deg' : '-1deg';
-      card.style.transition = 'transform 0.35s cubic-bezier(0.2, 0.8, 0.3, 1.2), box-shadow 0.35s ease';
+      card.style.transition =
+        'transform 0.35s cubic-bezier(0.2, 0.8, 0.3, 1.2), box-shadow 0.35s ease';
       card.style.transform = `translateY(-6px) rotate(${tilt})`;
-      card.style.boxShadow = '0 16px 40px rgba(8, 126, 164, 0.22), 0 0 16px rgba(34, 211, 238, 0.3)';
+      card.style.boxShadow =
+        '0 16px 40px rgba(8, 126, 164, 0.22), 0 0 16px rgba(34, 211, 238, 0.3)';
 
       // Settle back like a buoy floating on calm water
       setTimeout(() => {
-        card.style.transition = 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.5s ease';
+        card.style.transition =
+          'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.5s ease';
         card.style.transform = 'translateY(0) rotate(0deg)';
         card.style.boxShadow = '';
         setTimeout(() => {

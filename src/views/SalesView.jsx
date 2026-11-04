@@ -10,17 +10,19 @@ import {
   CheckCircle2,
   Calendar,
 } from 'lucide-react';
+import DataLimitControl from '../components/DataLimitControl';
 
 export default function SalesView({ onOpenHarvest }) {
-  const { sales, ponds } = useFarm();
+  const { sales, ponds, limitData } = useFarm();
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredSales = sales.filter(
     (s) =>
       s.buyerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.species.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.id.toLowerCase().includes(searchTerm.toLowerCase())
+      s.id.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+  const visibleSales = limitData(filteredSales);
 
   const totalGrossRevenue = sales.reduce((sum, s) => sum + (Number(s.grossRevenue) || 0), 0);
   const totalNetProfit = sales.reduce((sum, s) => sum + (Number(s.netProfit) || 0), 0);
@@ -43,7 +45,7 @@ export default function SalesView({ onOpenHarvest }) {
             Harvesting, Grading & Market Sales
           </h1>
           <p style={{ color: '#547185', fontSize: '0.84rem' }}>
-            Batch weight records, size grading distribution, distributor invoices & profit margins
+            Harvest records, market sales, distributor invoices & profit margins
           </p>
         </div>
 
@@ -64,9 +66,15 @@ export default function SalesView({ onOpenHarvest }) {
         }}
       >
         <div className="glass-surface" style={{ padding: '14px' }}>
-          <div style={{ fontSize: '0.78rem', color: '#547185', fontWeight: 600 }}>Total Gross Sales</div>
+          <div style={{ fontSize: '0.78rem', color: '#547185', fontWeight: 600 }}>
+            Total Gross Sales
+          </div>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#063B5C', marginTop: '3px' }}>
-            ₹{totalGrossRevenue.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            ₹
+            {totalGrossRevenue.toLocaleString('en-IN', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            })}
           </div>
           <div style={{ fontSize: '0.72rem', color: '#16A085', marginTop: '2px' }}>
             Gross receipts
@@ -74,9 +82,15 @@ export default function SalesView({ onOpenHarvest }) {
         </div>
 
         <div className="glass-surface" style={{ padding: '14px' }}>
-          <div style={{ fontSize: '0.78rem', color: '#547185', fontWeight: 600 }}>Net Profit Realized</div>
+          <div style={{ fontSize: '0.78rem', color: '#547185', fontWeight: 600 }}>
+            Net Profit Realized
+          </div>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#16A085', marginTop: '3px' }}>
-            ₹{totalNetProfit.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            ₹
+            {totalNetProfit.toLocaleString('en-IN', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            })}
           </div>
           <div style={{ fontSize: '0.72rem', color: '#087EA4', marginTop: '2px' }}>
             After harvest costs
@@ -84,7 +98,9 @@ export default function SalesView({ onOpenHarvest }) {
         </div>
 
         <div className="glass-surface" style={{ padding: '14px' }}>
-          <div style={{ fontSize: '0.78rem', color: '#547185', fontWeight: 600 }}>Total Harvested</div>
+          <div style={{ fontSize: '0.78rem', color: '#547185', fontWeight: 600 }}>
+            Total Harvested
+          </div>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#087EA4', marginTop: '3px' }}>
             {totalWeightHarvested.toLocaleString()} <span style={{ fontSize: '0.85rem' }}>kg</span>
           </div>
@@ -117,9 +133,11 @@ export default function SalesView({ onOpenHarvest }) {
 
       {/* Mobile Record Cards */}
       <div className="mobile-cards-container lg-hidden">
-        {filteredSales.map((sale) => (
+        {visibleSales.map((sale) => (
           <div key={sale.id} className="mobile-record-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
+            >
               <div>
                 <div style={{ fontWeight: 700, color: '#063B5C', fontSize: '0.94rem' }}>
                   {sale.buyerName}
@@ -165,7 +183,7 @@ export default function SalesView({ onOpenHarvest }) {
             </div>
 
             <div style={{ fontSize: '0.78rem', color: '#547185', marginTop: '2px' }}>
-              Species: <strong>{sale.species}</strong> ({sale.grade}) • Rate: ₹{sale.pricePerKg}/kg
+              Species: <strong>{sale.species}</strong> • Rate: ₹{sale.pricePerKg}/kg
             </div>
           </div>
         ))}
@@ -178,7 +196,7 @@ export default function SalesView({ onOpenHarvest }) {
             <tr>
               <th>Sale ID & Date</th>
               <th>Pond Origin</th>
-              <th>Species & Grade</th>
+              <th>Species</th>
               <th>Harvest Weight</th>
               <th>Fish Count</th>
               <th>Price / kg</th>
@@ -189,7 +207,7 @@ export default function SalesView({ onOpenHarvest }) {
             </tr>
           </thead>
           <tbody>
-            {filteredSales.map((sale) => (
+            {visibleSales.map((sale) => (
               <tr key={sale.id}>
                 <td>
                   <div style={{ fontWeight: 700, color: '#063B5C' }}>{sale.id}</div>
@@ -202,7 +220,6 @@ export default function SalesView({ onOpenHarvest }) {
                 </td>
                 <td>
                   <div style={{ fontWeight: 600, color: '#063B5C' }}>{sale.species}</div>
-                  <div style={{ fontSize: '0.74rem', color: '#087EA4' }}>{sale.grade}</div>
                 </td>
                 <td>
                   <span style={{ fontWeight: 800, color: '#063B5C' }}>
@@ -239,6 +256,10 @@ export default function SalesView({ onOpenHarvest }) {
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="data-card-heading data-card-heading-table data-card-heading-bottom">
+        <span>Sales records</span>
+        <DataLimitControl total={filteredSales.length} />
       </div>
     </div>
   );

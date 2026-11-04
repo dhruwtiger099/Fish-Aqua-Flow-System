@@ -13,15 +13,20 @@ import {
 export default function HarvestSaleModal({ initialPond, onClose }) {
   const { ponds, recordSale } = useFarm();
 
-  const cycles = useMemo(() => { try { return JSON.parse(localStorage.getItem('aquaflow_fish_cycles') || '[]'); } catch { return []; } }, []);
-  const [selectedCycleId, setSelectedCycleId] = useState(cycles[0]?.id || '');
-  const [weightKg, setWeightKg] = useState(1500);
-  const [fishCount, setFishCount] = useState(3000);
-  const [grade, setGrade] = useState('Grade A (>500g)');
-  const [buyerName, setBuyerName] = useState('OceanFresh Seafood Markets');
-  const [buyerContact, setBuyerContact] = useState('+1 (555) 234-8900');
-  const [pricePerKg, setPricePerKg] = useState(3.75);
-  const [harvestCost, setHarvestCost] = useState(320);
+  const cycles = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem('aquaflow_fish_cycles') || '[]');
+    } catch {
+      return [];
+    }
+  }, []);
+  const [selectedCycleId, setSelectedCycleId] = useState('');
+  const [weightKg, setWeightKg] = useState('');
+  const [fishCount, setFishCount] = useState('');
+  const [buyerName, setBuyerName] = useState('');
+  const [buyerContact, setBuyerContact] = useState('');
+  const [pricePerKg, setPricePerKg] = useState('');
+  const [harvestCost, setHarvestCost] = useState('');
   const [paymentStatus, setPaymentStatus] = useState('Paid');
 
   const selectedCycle = cycles.find((cycle) => cycle.id === selectedCycleId);
@@ -50,7 +55,6 @@ export default function HarvestSaleModal({ initialPond, onClose }) {
       batchNumber: selectedCycle?.id || `HARV-${Date.now().toString().slice(-4)}`,
       weightKg: Number(weightKg),
       fishCount: Number(fishCount),
-      grade,
       buyerName,
       buyerContact,
       pricePerKg: Number(pricePerKg),
@@ -96,14 +100,20 @@ export default function HarvestSaleModal({ initialPond, onClose }) {
               <Scale size={22} />
             </div>
             <div>
-              <h2 style={{ fontSize: '1.35rem', color: '#063B5C' }}>Record Harvest & Market Sale</h2>
+              <h2 style={{ fontSize: '1.35rem', color: '#063B5C' }}>
+                Record Harvest & Market Sale
+              </h2>
               <p style={{ fontSize: '0.82rem', color: '#547185' }}>
                 Batch grading, pricing per kg & biomass deduction
               </p>
             </div>
           </div>
 
-          <button onClick={onClose} className="btn-icon" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+          <button
+            onClick={onClose}
+            className="btn-icon"
+            style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+          >
             <X size={20} color="#063B5C" />
           </button>
         </div>
@@ -127,17 +137,29 @@ export default function HarvestSaleModal({ initialPond, onClose }) {
               onChange={(e) => setSelectedCycleId(e.target.value)}
               required
             >
-              {cycles.map((p) => ({ ...p, name: p.id, species: p.fishName || 'Fish not specified', estimatedBiomassKg: 0 })).map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} — {p.species} ({p.estimatedBiomassKg.toLocaleString()} kg available)
-                </option>
-              ))}
+              {cycles
+                .map((p) => ({
+                  ...p,
+                  name: p.id,
+                  species: p.fishName || 'Fish not specified',
+                  estimatedBiomassKg: 0,
+                }))
+                .map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} — {p.species} ({p.estimatedBiomassKg.toLocaleString()} kg available)
+                  </option>
+                ))}
             </select>
           </div>
 
           <div className="form-group">
             <label className="form-label">Fish Name / Species</label>
-            <input className="form-input" value={selectedCycle?.fishName || ''} readOnly placeholder="Select a cycle" />
+            <input
+              className="form-input"
+              value={selectedCycle?.fishName || ''}
+              readOnly
+              placeholder="Select a cycle"
+            />
           </div>
 
           {/* Weight & Count */}
@@ -177,16 +199,15 @@ export default function HarvestSaleModal({ initialPond, onClose }) {
             </div>
           </div>
 
-          {/* Grade & Price per kg */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            <div className="form-group">
-              <label className="form-label">Size / Grade</label>
-              <input className="form-input" value={grade} onChange={(e) => setGrade(e.target.value)} placeholder="e.g. Grade A, 500g+" />
+          {/* Price per kg */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '14px' }}>
+            <div className="form-group" style={{ display: 'none' }}>
+              <input className="form-input" value="" readOnly />
               <select
                 className="form-select"
                 style={{ display: 'none' }}
-                value={grade}
-                onChange={(e) => setGrade(e.target.value)}
+                value=""
+                onChange={() => {}}
               >
                 <option value="Grade A (>500g)">Grade A (&gt;500g Prime Select)</option>
                 <option value="Grade B (350-500g)">Grade B (350–500g Standard)</option>
@@ -228,6 +249,17 @@ export default function HarvestSaleModal({ initialPond, onClose }) {
             </div>
 
             <div className="form-group">
+              <label className="form-label">Buyer Mobile</label>
+              <input
+                type="tel"
+                className="form-input"
+                value={buyerContact}
+                onChange={(e) => setBuyerContact(e.target.value)}
+                placeholder="e.g. +91 98765 43210"
+              />
+            </div>
+
+            <div className="form-group">
               <label className="form-label">Harvest & Netting Cost (₹)</label>
               <input
                 type="number"
@@ -250,12 +282,29 @@ export default function HarvestSaleModal({ initialPond, onClose }) {
               margin: '12px 0 16px 0',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', color: '#063B5C', fontWeight: 700, fontSize: '0.86rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                marginBottom: '8px',
+                color: '#063B5C',
+                fontWeight: 700,
+                fontSize: '0.86rem',
+              }}
+            >
               <Calculator size={15} color="#087EA4" />
               <span>Revenue & Margin Breakdown</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', textAlign: 'center' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '10px',
+                textAlign: 'center',
+              }}
+            >
               <div>
                 <div style={{ fontSize: '0.74rem', color: '#547185' }}>Gross Revenue</div>
                 <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#063B5C' }}>
@@ -268,8 +317,16 @@ export default function HarvestSaleModal({ initialPond, onClose }) {
                   -₹{Number(harvestCost || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </div>
               </div>
-              <div style={{ background: 'rgba(22, 160, 133, 0.15)', borderRadius: '10px', padding: '6px' }}>
-                <div style={{ fontSize: '0.74rem', color: '#0E7460', fontWeight: 700 }}>Estimated Net Profit</div>
+              <div
+                style={{
+                  background: 'rgba(22, 160, 133, 0.15)',
+                  borderRadius: '10px',
+                  padding: '6px',
+                }}
+              >
+                <div style={{ fontSize: '0.74rem', color: '#0E7460', fontWeight: 700 }}>
+                  Estimated Net Profit
+                </div>
                 <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#16A085' }}>
                   ₹{netProfit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </div>

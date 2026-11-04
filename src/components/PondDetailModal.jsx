@@ -73,7 +73,8 @@ export default function PondDetailModal({ pond, onClose, onLogFeeding, onRecordH
               <h2 style={{ fontSize: '1.45rem', color: '#063B5C' }}>{pond.name}</h2>
             </div>
             <p style={{ color: '#547185', fontSize: '0.88rem', marginTop: '4px' }}>
-              {pond.species} • Surface Area: {pond.surfaceAreaM2} m² • Water Volume: {pond.volumeM3} m³
+              {pond.species} • Surface Area: {pond.surfaceAreaM2} m² • Water Volume: {pond.volumeM3}{' '}
+              m³
             </p>
           </div>
 

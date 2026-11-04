@@ -1,12 +1,32 @@
 const SPREADSHEET_ID = '1-KD56jTEth6vNUzvXZEHV0dr8wpqsO94zcVcD5lKIdg';
 const ATTACHMENT_FOLDER_ID = '1Eenv6l1i63viMN09XAQvues1AjolqkOP';
 const DEFAULT_HEADERS = ['Item Name', 'Category', 'SKU Code', 'Purchase Quantity', 'Current Stock', 'Unit', 'Min Threshold', 'Cost per Unit ($)', 'Primary Supplier', 'Mobile', 'Expiry Date'];
+const ALLOWED_SHEETS = ['Inventory', 'Purchase Order', 'Farm Expenses & Maintenance', 'Harvesting', 'Feed Cycle', 'Fish Lifecycle', 'Master'];
+const MAX_READ_LIMIT = 500;
+const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
+
+function allowedSheet(name) {
+  return ALLOWED_SHEETS.includes(String(name || '')) ? String(name) : null;
+}
 
 function doGet(e) {
-  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(e.parameter.sheet || 'Inventory');
+  const params = e && e.parameter ? e.parameter : {};
+  const sheetName = allowedSheet(params.sheet || 'Inventory');
+  if (!sheetName) return json({ ok: false, error: 'Sheet is not available' });
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(sheetName);
+  if (!sheet) return json({ ok: true, headers: [], rows: [] });
   const values = sheet.getDataRange().getDisplayValues();
-  const headers = values.shift();
-  return json({ ok: true, headers, rows: values.filter(row => row.some(Boolean)) });
+  const headerIndex = values.findIndex(row => row.some(cell => ['Item Name', 'Purchase Type', 'Cycle', 'Date'].includes(String(cell).trim())));
+  const safeHeaderIndex = headerIndex >= 0 ? headerIndex : 0;
+  const headers = values[safeHeaderIndex] || [];
+  const rows = values.slice(safeHeaderIndex + 1).filter(row => row.some(Boolean));
+  const requestedLimit = Math.min(MAX_READ_LIMIT, Math.max(0, Number(params.limit) || 0));
+  const requestedOffset = Math.max(0, Number(params.offset) || 0);
+  const isPagedRead = String(params.mode || '').toLowerCase() === 'page';
+  const limitedRows = isPagedRead
+    ? rows.slice(requestedOffset, requestedOffset + (requestedLimit > 0 ? requestedLimit : rows.length))
+    : requestedLimit > 0 ? rows.slice(Math.max(0, rows.length - requestedLimit)) : rows;
+  return json({ ok: true, headers, rows: limitedRows, offset: requestedOffset, totalRows: rows.length });
 }
 
 function doPost(e) {
@@ -14,24 +34,35 @@ function doPost(e) {
     const body = JSON.parse(e.postData.contents);
     if (body.action === 'uploadAttachment') {
       const bytes = Utilities.base64Decode(body.data);
-      const blob = Utilities.newBlob(bytes, body.mimeType || MimeType.PDF, body.fileName || `invoice-${Date.now()}`);
+      if (!body.data || bytes.length > MAX_ATTACHMENT_BYTES) throw new Error('Attachment must be 10 MB or smaller');
+      const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/png', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+      if (body.mimeType && !allowedMimeTypes.includes(body.mimeType)) throw new Error('Attachment type is not supported');
+      const safeFileName = String(body.fileName || `invoice-${Date.now()}`).replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 120);
+      const blob = Utilities.newBlob(bytes, body.mimeType || MimeType.PDF, safeFileName);
       const file = DriveApp.getFolderById(ATTACHMENT_FOLDER_ID).createFile(blob);
       return json({ ok: true, fileId: file.getId(), url: file.getUrl(), name: file.getName() });
     }
     if (body.action === 'addPurchaseOrder') {
       const item = body.item || {};
       const purchaseSheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Purchase Order');
-      const headers = purchaseSheet.getRange(1, 1, 1, Math.max(purchaseSheet.getLastColumn(), 1)).getDisplayValues()[0];
+      const purchaseSheetValues = purchaseSheet.getDataRange().getDisplayValues();
+      const purchaseHeaderIndex = purchaseSheetValues.findIndex(row => row.some(cell => ['Purchase Type', 'Unique No', 'Purchase Type '].includes(String(cell).trim())));
+      const headers = purchaseSheetValues[purchaseHeaderIndex >= 0 ? purchaseHeaderIndex : 0] || [];
+      if (headers.some((header) => String(header).trim().toLowerCase() === 'purchase type') && !headers.some((header) => ['vendor mobile', 'supplier mobile', 'mobile'].includes(String(header).trim().toLowerCase()))) {
+        purchaseSheet.getRange((purchaseHeaderIndex >= 0 ? purchaseHeaderIndex : 0) + 1, headers.length + 1).setValue('Vendor Mobile');
+        headers.push('Vendor Mobile');
+      }
       const values = {
-        'Timestamps': new Date(), 'Purchase Type': item.purchaseType, 'Initial Total Weight (kg)': item.fishWeight,
+        'Timestamps': new Date(), 'TImestamps': new Date(), 'Unique No': item.uniqueNo || item.id || '',
+        'Purchase Type': item.purchaseType, 'Initial Total Weight (kg)': item.fishWeight,
         'Fish Count': item.fishCount || (item.purchaseType === 'Fish Species' ? item.quantity : ''), 'Fish Name / Species': item.fishName,
-        'Item / Supply Name': item.itemName, 'Vendor / Supplier': item.supplier, 'Invoice / PO Reference': item.invoiceNumber,
+        'Item / Supply Name': item.itemName, 'Vendor / Supplier': item.supplier, 'Vendor Mobile': item.supplierMobile || '', 'Supplier Mobile': item.supplierMobile || '', 'Invoice / PO Reference': item.invoiceNumber,
         'Quantity': item.quantity, 'Unit': item.unit, 'Unit Price': item.unitPrice, 'Tax Rate (%)': item.taxRate,
         'Shipping / Freight': Number(item.shippingFee) > 0 ? 'Freight' : 'Self', 'Freight Amount': item.shippingFee,
-        'Delivery Status': item.status, 'Attachament': item.attachmentName || '', 'Receipt / Quality Inspection Notes': item.notes,
-        'Attachment': item.attachmentUrl || '', 'Total Purchase Amount': item.totalAmount,
+        'Delivery Status': item.status, 'Attachament': item.attachmentUrl || item.attachmentName || '', 'Receipt / Quality Inspection Notes': item.notes,
+        'Attachment': item.attachmentUrl || item.attachmentName || '', 'Total Purchase Amount': item.totalAmount,
       };
-      if (headers.includes('Timestamps') && headers.includes('Purchase Type')) {
+      if (headers.some((header) => String(header).trim().toLowerCase() === 'purchase type')) {
         purchaseSheet.appendRow(headers.map(header => values[header] ?? ''));
         return json({ ok: true, row: headers.map(header => values[header] ?? '') });
       }
@@ -49,7 +80,28 @@ function doPost(e) {
       legacyPurchaseSheet.appendRow(row);
       return json({ ok: true, row });
     }
-    const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(body.sheet || 'Inventory');
+    if (body.action === 'addExpense') {
+      const expenseSheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Farm Expenses & Maintenance');
+      const item = body.item || {};
+      const sheetValues = expenseSheet.getDataRange().getDisplayValues();
+      const headerIndex = sheetValues.findIndex(row => row.some(cell => String(cell).trim().toLowerCase() === 'expense no'));
+      const headerRow = headerIndex >= 0 ? headerIndex + 1 : 1;
+      const expectedHeaders = ['Timestamps', 'Expense No', 'Expense type', 'Pond / Area', 'Amount (₹)', 'Date', 'Notes'];
+      const fixedRow = [new Date(), item.expenseNo || item.id || '', item.category || '', item.pond || '', item.amount || 0, item.date || '', item.note || ''];
+      expenseSheet.getRange(headerRow, 1, 1, expectedHeaders.length).setValues([expectedHeaders]);
+      expenseSheet.getRange(expenseSheet.getLastRow() + 1, 1, 1, expectedHeaders.length).setValues([fixedRow]);
+      return json({ ok: true, row: fixedRow });
+    }
+    if (body.action === 'addHarvest') {
+      const harvestSheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Harvesting');
+      const item = body.item || {};
+      const harvestValues = [new Date(), item.saleNo || item.id || '', item.batchNumber || '', item.species || '', item.weightKg || 0, item.fishCount || 0, item.pricePerKg || 0, item.buyerName || '', item.buyerContact || '', item.harvestCost || 0];
+      harvestSheet.appendRow(harvestValues);
+      return json({ ok: true, row: harvestValues });
+    }
+    const targetSheetName = allowedSheet(body.sheet || 'Inventory');
+    if (!targetSheetName) throw new Error('Sheet is not available');
+    const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(targetSheetName);
     if (body.action === 'updateStock') {
       const headers = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getDisplayValues()[0];
       const skuColumn = headers.indexOf('SKU Code') + 1;
@@ -83,7 +135,18 @@ function doPost(e) {
       let lifecycleExisting = lifecycleSheet.getRange(2, 1, 1, Math.max(lifecycleSheet.getLastColumn(), 1)).getDisplayValues()[0];
       if (lifecycleSheet.getLastRow() < 2 || !lifecycleExisting.some(Boolean)) lifecycleSheet.getRange(2, 1, 1, lifecycleHeaders.length).setValues([lifecycleHeaders]);
       const item = body.item || {};
-      const values = [new Date(), item.id, item.fishName, item.nurseryWeight || '', item.nurseryFishCount || '', item.nurseryDate || '', item.pondAWeight || '', item.nurseryFishCount || '', item.pondADate || '', item.pondBWeight || '', item.nurseryFishCount || '', item.pondBDate || '', item.stage || 'Fry (Nursery)'];
+      const isNewNurseryCycle = body.action === 'addFishLifecycleCycle';
+      const values = [
+        new Date(), item.id, item.fishName,
+        item.nurseryWeight || '', item.nurseryFishCount || '', item.nurseryDate || '',
+        isNewNurseryCycle ? '' : (item.pondAWeight || ''),
+        isNewNurseryCycle ? '' : (item.pondAQty || ''),
+        isNewNurseryCycle ? '' : (item.pondADate || ''),
+        isNewNurseryCycle ? '' : (item.pondBWeight || ''),
+        isNewNurseryCycle ? '' : (item.pondBQty || ''),
+        isNewNurseryCycle ? '' : (item.pondBDate || ''),
+        item.stage || 'Fry (Nursery)',
+      ];
       if (body.action === 'addFishLifecycleCycle') { lifecycleSheet.appendRow(values); return json({ ok: true, row: values }); }
       const rows = lifecycleSheet.getDataRange().getDisplayValues();
       const cycleColumn = 2;

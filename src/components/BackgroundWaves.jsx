@@ -5,7 +5,10 @@ export default function BackgroundWaves() {
     <div className="ocean-ambient-bg" aria-hidden="true">
       {/* Soft underwater light rays */}
       <div className="ambient-light-ray" style={{ left: '12%', animationDuration: '14s' }} />
-      <div className="ambient-light-ray" style={{ left: '60%', animationDuration: '18s', animationDelay: '3s' }} />
+      <div
+        className="ambient-light-ray"
+        style={{ left: '60%', animationDuration: '18s', animationDelay: '3s' }}
+      />
 
       {/* Floating translucent bubbles with diverse sizes & positions */}
       <div

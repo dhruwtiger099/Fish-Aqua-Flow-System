@@ -32,7 +32,8 @@ export default function DashboardView({ onOpenPurchase, onOpenFeeding, onOpenHar
         className="glass-surface water-buoyant"
         style={{
           padding: '14px 16px',
-          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(224, 247, 250, 0.75) 100%)',
+          background:
+            'linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(224, 247, 250, 0.75) 100%)',
           border: '1.5px solid rgba(34, 211, 238, 0.35)',
           display: 'flex',
           flexDirection: 'column',
@@ -42,12 +43,15 @@ export default function DashboardView({ onOpenPurchase, onOpenFeeding, onOpenHar
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '1.15rem' }}>🌊</span>
+              <Droplets size={18} aria-hidden="true" />
               <h1 style={{ fontSize: '1.25rem', color: '#063B5C', lineHeight: 1.15 }}>
                 Aquaculture Center
               </h1>
             </div>
-            <p className="dashboard-context" style={{ color: '#547185', fontSize: '0.78rem', marginTop: '2px' }}>
+            <p
+              className="dashboard-context"
+              style={{ color: '#547185', fontSize: '0.78rem', marginTop: '2px' }}
+            >
               {currentUser.name} • <strong>{currentUser.role}</strong>
             </p>
           </div>
@@ -98,18 +102,29 @@ export default function DashboardView({ onOpenPurchase, onOpenFeeding, onOpenHar
           className="glass-surface water-buoyant"
           style={{
             padding: '14px',
-            background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 247, 250, 0.6) 100%)',
+            background:
+              'linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 247, 250, 0.6) 100%)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#547185' }}>Live Biomass</span>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '6px',
+            }}
+          >
+            <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#547185' }}>
+              Live Biomass
+            </span>
             <Scale size={16} color="#087EA4" />
           </div>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#063B5C', lineHeight: 1.1 }}>
-            {totalBiomassKg.toLocaleString()} <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>kg</span>
+            {totalBiomassKg.toLocaleString()}{' '}
+            <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>kg</span>
           </div>
           <div style={{ fontSize: '0.7rem', color: '#16A085', fontWeight: 600, marginTop: '4px' }}>
-            No production logged yet
+            No production data available
           </div>
         </div>
 
@@ -118,15 +133,26 @@ export default function DashboardView({ onOpenPurchase, onOpenFeeding, onOpenHar
           className="glass-surface water-buoyant"
           style={{
             padding: '14px',
-            background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 247, 250, 0.6) 100%)',
+            background:
+              'linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 247, 250, 0.6) 100%)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#547185' }}>Active Stock</span>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '6px',
+            }}
+          >
+            <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#547185' }}>
+              Active Stock
+            </span>
             <Fish size={16} color="#065778" />
           </div>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#063B5C', lineHeight: 1.1 }}>
-            {totalStockCount.toLocaleString()} <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>fish</span>
+            {totalStockCount.toLocaleString()}{' '}
+            <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>fish</span>
           </div>
           <div style={{ fontSize: '0.7rem', color: '#16A085', fontWeight: 600, marginTop: '4px' }}>
             Add nursery stock to begin
@@ -138,18 +164,28 @@ export default function DashboardView({ onOpenPurchase, onOpenFeeding, onOpenHar
           className="glass-surface water-buoyant"
           style={{
             padding: '14px',
-            background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 247, 250, 0.6) 100%)',
+            background:
+              'linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 247, 250, 0.6) 100%)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#547185' }}>Today's Feed</span>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '6px',
+            }}
+          >
+            <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#547185' }}>
+              Today's Feed
+            </span>
             <Utensils size={16} color="#087EA4" />
           </div>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#063B5C', lineHeight: 1.1 }}>
             {totalTodayFeedKg} <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>kg</span>
           </div>
           <div style={{ fontSize: '0.7rem', color: '#087EA4', fontWeight: 600, marginTop: '4px' }}>
-            No target set
+            Harvest target not configured
           </div>
         </div>
 
@@ -158,18 +194,28 @@ export default function DashboardView({ onOpenPurchase, onOpenFeeding, onOpenHar
           className="glass-surface water-buoyant"
           style={{
             padding: '14px',
-            background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 247, 250, 0.6) 100%)',
+            background:
+              'linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(224, 247, 250, 0.6) 100%)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#547185' }}>Est. Value</span>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '6px',
+            }}
+          >
+            <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#547185' }}>
+              Est. Value
+            </span>
             <DollarSign size={16} color="#16A085" />
           </div>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#063B5C', lineHeight: 1.1 }}>
             ₹{Math.round(projectedRevenue).toLocaleString('en-IN')}
           </div>
           <div style={{ fontSize: '0.7rem', color: '#547185', marginTop: '4px' }}>
-            Sale price not set
+            Selling price not configured
           </div>
         </div>
       </div>
@@ -194,11 +240,11 @@ export default function DashboardView({ onOpenPurchase, onOpenFeeding, onOpenHar
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Activity size={17} color="#087EA4" />
-              <h3 style={{ fontSize: '1rem', color: '#063B5C' }}>
-                24h Dissolved Oxygen (DO)
-              </h3>
+              <h3 style={{ fontSize: '1rem', color: '#063B5C' }}>24h Dissolved Oxygen (DO)</h3>
             </div>
-            <span className="badge badge-active" style={{ fontSize: '0.68rem' }}>Live</span>
+            <span className="badge badge-active" style={{ fontSize: '0.68rem' }}>
+              Live
+            </span>
           </div>
 
           {/* SVG Trend */}
@@ -214,12 +260,42 @@ export default function DashboardView({ onOpenPurchase, onOpenFeeding, onOpenHar
                 </linearGradient>
               </defs>
 
-              <line x1="0" y1="40" x2="600" y2="40" stroke="rgba(8, 126, 164, 0.1)" strokeDasharray="4 4" />
-              <line x1="0" y1="90" x2="600" y2="90" stroke="rgba(8, 126, 164, 0.1)" strokeDasharray="4 4" />
-              <line x1="0" y1="140" x2="600" y2="140" stroke="rgba(8, 126, 164, 0.1)" strokeDasharray="4 4" />
+              <line
+                x1="0"
+                y1="40"
+                x2="600"
+                y2="40"
+                stroke="rgba(8, 126, 164, 0.1)"
+                strokeDasharray="4 4"
+              />
+              <line
+                x1="0"
+                y1="90"
+                x2="600"
+                y2="90"
+                stroke="rgba(8, 126, 164, 0.1)"
+                strokeDasharray="4 4"
+              />
+              <line
+                x1="0"
+                y1="140"
+                x2="600"
+                y2="140"
+                stroke="rgba(8, 126, 164, 0.1)"
+                strokeDasharray="4 4"
+              />
 
-              <line x1="0" y1="110" x2="600" y2="110" stroke="rgba(233, 162, 59, 0.4)" strokeDasharray="3 3" />
-              <text x="510" y="105" fill="#E9A23B" fontSize="10" fontWeight="600">Min DO 5.0</text>
+              <line
+                x1="0"
+                y1="110"
+                x2="600"
+                y2="110"
+                stroke="rgba(233, 162, 59, 0.4)"
+                strokeDasharray="3 3"
+              />
+              <text x="510" y="105" fill="#E9A23B" fontSize="10" fontWeight="600">
+                Min DO 5.0
+              </text>
 
               <path
                 d="M 20 80 Q 110 95, 200 70 T 380 45 T 480 60 T 580 50 L 580 160 L 20 160 Z"
@@ -272,11 +348,13 @@ export default function DashboardView({ onOpenPurchase, onOpenFeeding, onOpenHar
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Utensils size={17} color="#087EA4" />
-              <h3 style={{ fontSize: '1rem', color: '#063B5C' }}>
-                Recent Feed Rations
-              </h3>
+              <h3 style={{ fontSize: '1rem', color: '#063B5C' }}>Recent Feed Rations</h3>
             </div>
-            <button onClick={onOpenFeeding} className="btn btn-sm btn-outline" style={{ padding: '4px 8px' }}>
+            <button
+              onClick={onOpenFeeding}
+              className="btn btn-sm btn-outline"
+              style={{ padding: '4px 8px' }}
+            >
               + Add
             </button>
           </div>
@@ -297,11 +375,10 @@ export default function DashboardView({ onOpenPurchase, onOpenFeeding, onOpenHar
               >
                 <div>
                   <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#063B5C' }}>
-                    {log.pondName.split('—')[0]} • {log.rationNumber.split('(')[0]}
+                    {String(log.pondName || '').split('—')[0]} •{' '}
+                    {String(log.rationNumber || '').split('(')[0]}
                   </div>
-                  <div style={{ fontSize: '0.7rem', color: '#547185' }}>
-                    {log.feedItem}
-                  </div>
+                  <div style={{ fontSize: '0.7rem', color: '#547185' }}>{log.feedItem}</div>
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
@@ -324,7 +401,8 @@ export default function DashboardView({ onOpenPurchase, onOpenFeeding, onOpenHar
           className="glass-surface"
           style={{
             padding: '12px 14px',
-            background: 'linear-gradient(135deg, rgba(233, 162, 59, 0.12) 0%, rgba(255, 255, 255, 0.95) 100%)',
+            background:
+              'linear-gradient(135deg, rgba(233, 162, 59, 0.12) 0%, rgba(255, 255, 255, 0.95) 100%)',
             border: '1.5px solid rgba(233, 162, 59, 0.35)',
             display: 'flex',
             flexDirection: 'column',
@@ -337,7 +415,11 @@ export default function DashboardView({ onOpenPurchase, onOpenFeeding, onOpenHar
               Reorder Warning: {lowStockCount} item low in stock
             </div>
           </div>
-          <button onClick={onOpenPurchase} className="btn btn-sm btn-primary" style={{ width: '100%' }}>
+          <button
+            onClick={onOpenPurchase}
+            className="btn btn-sm btn-primary"
+            style={{ width: '100%' }}
+          >
             Restock Item Now
           </button>
         </div>

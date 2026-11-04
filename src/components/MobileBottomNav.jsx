@@ -1,12 +1,6 @@
 import React from 'react';
 import { useFarm } from '../context/FarmContext';
-import {
-  LayoutDashboard,
-  Fish,
-  Utensils,
-  Package,
-  Menu,
-} from 'lucide-react';
+import { LayoutDashboard, Fish, Utensils, Package, Menu } from 'lucide-react';
 
 export default function MobileBottomNav({ onToggleSidebar }) {
   const { activeTab, setActiveTab } = useFarm();
@@ -84,7 +78,11 @@ export default function MobileBottomNav({ onToggleSidebar }) {
                 transition: 'background 0.15s ease',
               }}
             >
-              <Icon size={18} color={isActive ? '#087EA4' : '#64748B'} strokeWidth={isActive ? 2.4 : 1.8} />
+              <Icon
+                size={18}
+                color={isActive ? '#087EA4' : '#64748B'}
+                strokeWidth={isActive ? 2.4 : 1.8}
+              />
             </div>
             <span
               style={{
@@ -129,9 +127,7 @@ export default function MobileBottomNav({ onToggleSidebar }) {
         >
           <Menu size={18} color="#64748B" strokeWidth={1.8} />
         </div>
-        <span style={{ fontSize: '0.68rem', fontWeight: 500, color: '#64748B' }}>
-          More
-        </span>
+        <span style={{ fontSize: '0.68rem', fontWeight: 500, color: '#64748B' }}>More</span>
       </button>
     </nav>
   );

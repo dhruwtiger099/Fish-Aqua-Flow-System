@@ -11,9 +11,18 @@ import {
   ShoppingCart,
   Boxes,
 } from 'lucide-react';
+import DataLimitControl from '../components/DataLimitControl';
 
 export default function InventoryView({ onOpenPurchase }) {
-  const { inventory, purchases, feedingLogs, adjustStock, addInventoryItem, masterData } = useFarm();
+  const {
+    inventory,
+    purchases,
+    feedingLogs,
+    adjustStock,
+    addInventoryItem,
+    masterData,
+    limitData,
+  } = useFarm();
 
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,8 +45,19 @@ export default function InventoryView({ onOpenPurchase }) {
   const [newItemExpiryDate, setNewItemExpiryDate] = useState('');
   const [newItemLocation, setNewItemLocation] = useState('Warehouse Bay 1');
 
-  const categories = ['All', 'Feed', 'Water Treatment', 'Emergency Supplies', 'Supplements', 'Equipment', 'Fish Species'];
-  const expiryEnabled = newItemCategory === 'Feed' || newItemCategory === 'Emergency Supplies' || newItemCategory === 'Supplements';
+  const categories = [
+    'All',
+    'Feed',
+    'Water Treatment',
+    'Emergency Supplies',
+    'Supplements',
+    'Equipment',
+    'Fish Species',
+  ];
+  const expiryEnabled =
+    newItemCategory === 'Feed' ||
+    newItemCategory === 'Emergency Supplies' ||
+    newItemCategory === 'Supplements';
   const expiryWarning = (date) => {
     if (!date) return false;
     const days = (new Date(date) - new Date()) / 86400000;
@@ -52,10 +72,11 @@ export default function InventoryView({ onOpenPurchase }) {
       item.supplier.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+  const visibleInventory = limitData(filteredInventory);
 
   const totalValue = inventory.reduce(
     (sum, i) => sum + (Number(i.stockQty) || 0) * (Number(i.costPerUnit) || 0),
-    0
+    0,
   );
 
   const handleAdjustSubmit = (e) => {
@@ -86,7 +107,10 @@ export default function InventoryView({ onOpenPurchase }) {
   };
 
   return (
-    <div className="inventory-page" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <div
+      className="inventory-page"
+      style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+    >
       {/* Header with Mobile Responsive Action Buttons */}
       <div
         className="glass-surface"
@@ -101,9 +125,7 @@ export default function InventoryView({ onOpenPurchase }) {
           <h1 style={{ fontSize: '1.4rem', color: '#063B5C', marginBottom: '2px' }}>
             Inventory & Supplies
           </h1>
-          <p style={{ color: '#547185', fontSize: '0.84rem' }}>
-            Stock tracking for feed pellets, water conditioners, testing reagents & fingerlings
-          </p>
+          <p style={{ color: '#547185', fontSize: '0.84rem' }}></p>
         </div>
 
         {/* Action Buttons: on mobile grid 1fr 1fr with zero overflow */}
@@ -128,7 +150,9 @@ export default function InventoryView({ onOpenPurchase }) {
         }}
       >
         <div className="glass-surface water-buoyant" style={{ padding: '14px' }}>
-          <div style={{ fontSize: '0.78rem', color: '#547185', fontWeight: 600 }}>Total Inventory Asset</div>
+          <div style={{ fontSize: '0.78rem', color: '#547185', fontWeight: 600 }}>
+            Total Inventory Asset
+          </div>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#063B5C', marginTop: '3px' }}>
             ₹{Math.round(totalValue).toLocaleString('en-IN')}
           </div>
@@ -138,7 +162,9 @@ export default function InventoryView({ onOpenPurchase }) {
         </div>
 
         <div className="glass-surface water-buoyant" style={{ padding: '14px' }}>
-          <div style={{ fontSize: '0.78rem', color: '#547185', fontWeight: 600 }}>Feed Pellets in Silos</div>
+          <div style={{ fontSize: '0.78rem', color: '#547185', fontWeight: 600 }}>
+            Feed Pellets in Silos
+          </div>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#087EA4', marginTop: '3px' }}>
             {inventory
               .filter((i) => i.category === 'Feed')
@@ -152,7 +178,9 @@ export default function InventoryView({ onOpenPurchase }) {
         </div>
 
         <div className="glass-surface water-buoyant" style={{ padding: '14px' }}>
-          <div style={{ fontSize: '0.78rem', color: '#547185', fontWeight: 600 }}>Reorder Alerts</div>
+          <div style={{ fontSize: '0.78rem', color: '#547185', fontWeight: 600 }}>
+            Reorder Alerts
+          </div>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#E9A23B', marginTop: '3px' }}>
             {inventory.filter((i) => i.stockQty <= i.minThreshold).length}
           </div>
@@ -207,15 +235,39 @@ export default function InventoryView({ onOpenPurchase }) {
 
       {/* Mobile Record Cards (Shown automatically on screens <= 768px) */}
       <div className="mobile-cards-container lg-hidden">
-        {filteredInventory.map((item) => {
+        {visibleInventory.map((item) => {
           const isLow = item.stockQty <= item.minThreshold;
           const totalCost = (item.stockQty * item.costPerUnit).toFixed(2);
           return (
             <div key={item.id} className="mobile-record-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                }}
+              >
                 <div>
                   <div style={{ fontWeight: 700, color: '#063B5C', fontSize: '0.94rem' }}>
-                    <button type="button" onClick={() => { setDetailsMode('quantity'); setDetailsItem(item); }} style={{ background: 'none', border: 0, padding: 0, color: 'inherit', fontWeight: 700, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline' }}>{item.name}</button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDetailsMode('quantity');
+                        setDetailsItem(item);
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 0,
+                        padding: 0,
+                        color: 'inherit',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      {item.name}
+                    </button>
                   </div>
                   <div style={{ fontSize: '0.74rem', color: '#547185', marginTop: '1px' }}>
                     {item.sku} • {item.location}
@@ -269,7 +321,11 @@ export default function InventoryView({ onOpenPurchase }) {
                 }}
               >
                 <div>
-                  Rate: <strong>₹{item.costPerUnit.toFixed(2)}/{item.unit}</strong> • Supplier: {item.supplier}
+                  Rate:{' '}
+                  <strong>
+                    ₹{item.costPerUnit.toFixed(2)}/{item.unit}
+                  </strong>{' '}
+                  • Supplier: {item.supplier}
                 </div>
                 <button
                   className="btn btn-sm btn-outline"
@@ -309,21 +365,50 @@ export default function InventoryView({ onOpenPurchase }) {
             </tr>
           </thead>
           <tbody>
-            {filteredInventory.map((item) => {
+            {visibleInventory.map((item) => {
               const isLow = item.stockQty <= item.minThreshold;
-              const isExpiring = item.expiryDate && expiryWarning(item.expiryDate) && item.category !== 'Water Treatment';
+              const isExpiring =
+                item.expiryDate &&
+                expiryWarning(item.expiryDate) &&
+                item.category !== 'Water Treatment';
               const purchaseQty = Number(item.purchaseQty ?? item.stockQty) || 0;
               const usedQty = Math.max(0, purchaseQty - (Number(item.stockQty) || 0));
               const itemPurchaseRecords = purchases
-                .filter((purchase) => purchase.itemId === item.id || purchase.itemSku === item.sku || purchase.itemName === item.name)
+                .filter(
+                  (purchase) =>
+                    purchase.itemId === item.id ||
+                    purchase.itemSku === item.sku ||
+                    purchase.itemName === item.name,
+                )
                 .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
               const purchaseUnitCost = Number(itemPurchaseRecords[0]?.unitPrice);
-              const unitCost = Number.isFinite(purchaseUnitCost) && purchaseUnitCost > 0 ? purchaseUnitCost : Number(item.costPerUnit) || 0;
+              const unitCost =
+                Number.isFinite(purchaseUnitCost) && purchaseUnitCost > 0
+                  ? purchaseUnitCost
+                  : Number(item.costPerUnit) || 0;
               const totalCost = (Number(item.stockQty) * unitCost).toFixed(2);
               return (
                 <tr key={item.id}>
                   <td>
-                    <button type="button" onClick={() => { setDetailsMode('quantity'); setDetailsItem(item); }} style={{ background: 'none', border: 0, padding: 0, color: '#063B5C', fontWeight: 700, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline' }}>{item.name}</button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDetailsMode('quantity');
+                        setDetailsItem(item);
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 0,
+                        padding: 0,
+                        color: '#063B5C',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      {item.name}
+                    </button>
                     <div style={{ fontSize: '0.74rem', color: '#547185' }}>{item.sku}</div>
                   </td>
                   <td>
@@ -333,9 +418,15 @@ export default function InventoryView({ onOpenPurchase }) {
                   </td>
                   <td style={{ color: '#063B5C', fontWeight: 600 }}>
                     {purchaseQty.toLocaleString()} {item.unit}
-                    {item.lastRestocked && <div style={{ fontSize: '0.68rem', color: '#547185', fontWeight: 400 }}>Added {item.lastAddedQty || ''} on {item.lastRestocked}</div>}
+                    {item.lastRestocked && (
+                      <div style={{ fontSize: '0.68rem', color: '#547185', fontWeight: 400 }}>
+                        Added {item.lastAddedQty || ''} on {item.lastRestocked}
+                      </div>
+                    )}
                   </td>
-                  <td style={{ color: '#C2410C', fontWeight: 600 }}>{usedQty.toLocaleString()} {item.unit}</td>
+                  <td style={{ color: '#C2410C', fontWeight: 600 }}>
+                    {usedQty.toLocaleString()} {item.unit}
+                  </td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span
@@ -358,7 +449,15 @@ export default function InventoryView({ onOpenPurchase }) {
                     {item.minThreshold} {item.unit}
                   </td>
                   <td style={{ fontWeight: 600, color: '#063B5C' }}>
-                    <button type="button" className="inventory-cost-link" onClick={() => { setDetailsMode('cost'); setDetailsItem(item); }} title="View purchase and unit cost history">
+                    <button
+                      type="button"
+                      className="inventory-cost-link"
+                      onClick={() => {
+                        setDetailsMode('cost');
+                        setDetailsItem(item);
+                      }}
+                      title="View purchase and unit cost history"
+                    >
                       ₹{unitCost.toFixed(2)}
                     </button>
                   </td>
@@ -367,8 +466,17 @@ export default function InventoryView({ onOpenPurchase }) {
                   </td>
                   <td style={{ fontSize: '0.82rem', color: '#547185' }}>{item.location}</td>
                   <td style={{ fontSize: '0.82rem', color: '#547185' }}>{item.supplier}</td>
-                  <td style={{ fontSize: '0.82rem', color: '#547185' }}>{item.supplierPhone || '—'}</td>
-                  <td className="inventory-expiry-column" style={{ fontSize: '0.82rem', color: isExpiring ? '#C2410C' : '#547185', fontWeight: isExpiring ? 700 : 400 }}>
+                  <td style={{ fontSize: '0.82rem', color: '#547185' }}>
+                    {item.supplierPhone || '—'}
+                  </td>
+                  <td
+                    className="inventory-expiry-column"
+                    style={{
+                      fontSize: '0.82rem',
+                      color: isExpiring ? '#C2410C' : '#547185',
+                      fontWeight: isExpiring ? 700 : 400,
+                    }}
+                  >
                     {item.expiryDate || '—'}
                   </td>
                   <td>
@@ -388,6 +496,10 @@ export default function InventoryView({ onOpenPurchase }) {
           </tbody>
         </table>
       </div>
+      <div className="data-card-heading data-card-heading-table data-card-heading-bottom">
+        <span>Inventory records</span>
+        <DataLimitControl total={filteredInventory.length} />
+      </div>
 
       {/* Adjust Stock Dialog */}
       {adjustingItem && (
@@ -401,14 +513,15 @@ export default function InventoryView({ onOpenPurchase }) {
               Adjust Stock: {adjustingItem.name}
             </h3>
             <p style={{ color: '#547185', fontSize: '0.82rem', marginBottom: '14px' }}>
-              Current stock: <strong>{adjustingItem.stockQty} {adjustingItem.unit}</strong>
+              Current stock:{' '}
+              <strong>
+                {adjustingItem.stockQty} {adjustingItem.unit}
+              </strong>
             </p>
 
             <form onSubmit={handleAdjustSubmit}>
               <div className="form-group">
-                <label className="form-label">
-                  Stock Change (use negative to deduct)
-                </label>
+                <label className="form-label">Stock Change (use negative to deduct)</label>
                 <input
                   type="number"
                   step="any"
@@ -418,11 +531,22 @@ export default function InventoryView({ onOpenPurchase }) {
                   required
                 />
                 <div className="form-hint">
-                  New stock will be: <strong>{Math.max(0, adjustingItem.stockQty + Number(adjustAmount || 0))} {adjustingItem.unit}</strong>
+                  New stock will be:{' '}
+                  <strong>
+                    {Math.max(0, adjustingItem.stockQty + Number(adjustAmount || 0))}{' '}
+                    {adjustingItem.unit}
+                  </strong>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: '10px',
+                  marginTop: '16px',
+                }}
+              >
                 <button
                   type="button"
                   className="btn btn-secondary"
@@ -466,7 +590,13 @@ export default function InventoryView({ onOpenPurchase }) {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                  gap: '10px',
+                }}
+              >
                 <div className="form-group">
                   <label className="form-label">Category</label>
                   <select
@@ -474,7 +604,21 @@ export default function InventoryView({ onOpenPurchase }) {
                     value={newItemCategory}
                     onChange={(e) => setNewItemCategory(e.target.value)}
                   >
-                    {(masterData.category.length ? masterData.category : ['Feed', 'Water Treatment', 'Emergency Supplies', 'Supplements', 'Equipment', 'Fish Species']).map((value) => <option key={value} value={value}>{value}</option>)}
+                    {(masterData.category.length
+                      ? masterData.category
+                      : [
+                          'Feed',
+                          'Water Treatment',
+                          'Emergency Supplies',
+                          'Supplements',
+                          'Equipment',
+                          'Fish Species',
+                        ]
+                    ).map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -490,7 +634,13 @@ export default function InventoryView({ onOpenPurchase }) {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '10px' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
+                  gap: '10px',
+                }}
+              >
                 <div className="form-group">
                   <label className="form-label">Initial Quantity</label>
                   <input
@@ -509,12 +659,24 @@ export default function InventoryView({ onOpenPurchase }) {
                     value={newItemUnit}
                     onChange={(e) => setNewItemUnit(e.target.value)}
                   >
-                    {(masterData.unit.length ? masterData.unit : ['Kg', 'Pcs', 'Bag', 'Packet', 'MT', 'Ltr']).map((value) => <option key={value} value={value}>{value}</option>)}
+                    {(masterData.unit.length
+                      ? masterData.unit
+                      : ['Kg', 'Pcs', 'Bag', 'Packet', 'MT', 'Ltr']
+                    ).map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Min Threshold <span title="Minimum stock level; a low-stock alert appears when stock reaches this number.">ⓘ</span></label>
+                  <label className="form-label">
+                    Min Threshold{' '}
+                    <span title="Minimum stock level; a low-stock alert appears when stock reaches this number.">
+                      ⓘ
+                    </span>
+                  </label>
                   <input
                     type="number"
                     className="form-input"
@@ -524,7 +686,13 @@ export default function InventoryView({ onOpenPurchase }) {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                  gap: '10px',
+                }}
+              >
                 <div className="form-group">
                   <label className="form-label">Cost per Unit (₹)</label>
                   <input
@@ -549,19 +717,40 @@ export default function InventoryView({ onOpenPurchase }) {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Supplier Mobile</label>
-                  <input type="tel" className="form-input" value={newItemSupplierPhone} onChange={(e) => setNewItemSupplierPhone(e.target.value)} placeholder="e.g. +91 98765 43210" />
+                  <input
+                    type="tel"
+                    className="form-input"
+                    value={newItemSupplierPhone}
+                    onChange={(e) => setNewItemSupplierPhone(e.target.value)}
+                    placeholder="e.g. +91 98765 43210"
+                  />
                 </div>
               </div>
 
               {expiryEnabled && (
                 <div className="form-group">
                   <label className="form-label">Expiry Date</label>
-                  <input type="date" className="form-input" value={newItemExpiryDate} onChange={(e) => setNewItemExpiryDate(e.target.value)} required />
-                  <div style={{ fontSize: '0.72rem', color: '#547185', marginTop: '4px' }}>Expiry se 7 din pehle item highlight hoga.</div>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={newItemExpiryDate}
+                    onChange={(e) => setNewItemExpiryDate(e.target.value)}
+                    required
+                  />
+                  <div style={{ fontSize: '0.72rem', color: '#547185', marginTop: '4px' }}>
+                    Expiry se 7 din pehle item highlight hoga.
+                  </div>
                 </div>
               )}
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: '10px',
+                  marginTop: '16px',
+                }}
+              >
                 <button
                   type="button"
                   className="btn btn-secondary"
@@ -578,40 +767,198 @@ export default function InventoryView({ onOpenPurchase }) {
         </div>
       )}
 
-      {detailsItem && (() => {
-        const itemPurchases = purchases
-          .filter((purchase) => purchase.itemId === detailsItem.id || purchase.itemSku === detailsItem.sku || purchase.itemName === detailsItem.name)
-          .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
-        const itemFeeds = feedingLogs.filter((feed) => feed.feedItemId === detailsItem.id || feed.feedItem === detailsItem.name);
-        const purchasedQty = itemPurchases.reduce((sum, purchase) => sum + (Number(purchase.quantity) || 0), 0);
-        const usedQty = itemFeeds.reduce((sum, feed) => sum + (Number(feed.quantityKg) || 0), 0);
-        const currentUnitCost = Number(itemPurchases[0]?.unitPrice) || Number(detailsItem.costPerUnit) || 0;
-        const currentAsset = (Number(detailsItem.stockQty) || 0) * currentUnitCost;
-        return (
-          <div className="modal-overlay" onClick={() => setDetailsItem(null)}>
-            <div className="modal-content inventory-detail-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '680px', padding: '24px' }}>
-              <div className="inventory-detail-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '18px' }}>
-                <div><h2 style={{ color: '#063B5C' }}>{detailsItem.name}</h2><div style={{ color: '#547185', fontSize: '.8rem' }}>{detailsItem.sku} <span className="badge badge-ocean" style={{ marginLeft: '6px', fontSize: '.65rem' }}>{detailsItem.category}</span></div></div>
-                <button type="button" className="btn btn-secondary" onClick={() => setDetailsItem(null)}>Close</button>
+      {detailsItem &&
+        (() => {
+          const itemPurchases = purchases
+            .filter(
+              (purchase) =>
+                purchase.itemId === detailsItem.id ||
+                purchase.itemSku === detailsItem.sku ||
+                purchase.itemName === detailsItem.name,
+            )
+            .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+          const itemFeeds = feedingLogs.filter(
+            (feed) => feed.feedItemId === detailsItem.id || feed.feedItem === detailsItem.name,
+          );
+          const purchasedQty = itemPurchases.reduce(
+            (sum, purchase) => sum + (Number(purchase.quantity) || 0),
+            0,
+          );
+          const usedQty = itemFeeds.reduce((sum, feed) => sum + (Number(feed.quantityKg) || 0), 0);
+          const currentUnitCost =
+            Number(itemPurchases[0]?.unitPrice) || Number(detailsItem.costPerUnit) || 0;
+          const currentAsset = (Number(detailsItem.stockQty) || 0) * currentUnitCost;
+          return (
+            <div className="modal-overlay" onClick={() => setDetailsItem(null)}>
+              <div
+                className="modal-content inventory-detail-modal"
+                onClick={(e) => e.stopPropagation()}
+                style={{ maxWidth: '680px', padding: '24px' }}
+              >
+                <div
+                  className="inventory-detail-header"
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    marginBottom: '18px',
+                  }}
+                >
+                  <div>
+                    <h2 style={{ color: '#063B5C' }}>{detailsItem.name}</h2>
+                    <div style={{ color: '#547185', fontSize: '.8rem' }}>
+                      {detailsItem.sku}{' '}
+                      <span
+                        className="badge badge-ocean"
+                        style={{ marginLeft: '6px', fontSize: '.65rem' }}
+                      >
+                        {detailsItem.category}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setDetailsItem(null)}
+                  >
+                    Close
+                  </button>
+                </div>
+                <div
+                  className="inventory-detail-kpis"
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '10px',
+                    marginBottom: '22px',
+                  }}
+                >
+                  <div className="detail-kpi detail-kpi-purchased">
+                    <small>Total Purchased</small>
+                    <strong>
+                      {purchasedQty} {detailsItem.unit}
+                    </strong>
+                  </div>
+                  <div className="detail-kpi detail-kpi-used">
+                    <small>{detailsMode === 'cost' ? 'Current Unit Cost' : 'Total Used'}</small>
+                    <strong>
+                      {detailsMode === 'cost'
+                        ? `₹${currentUnitCost.toFixed(2)}`
+                        : `${usedQty} ${detailsItem.unit}`}
+                    </strong>
+                  </div>
+                  <div className="detail-kpi detail-kpi-current">
+                    <small>Current Stock</small>
+                    <strong>
+                      {detailsItem.stockQty} {detailsItem.unit}
+                    </strong>
+                  </div>
+                </div>
+                {detailsMode === 'cost' && (
+                  <>
+                    <h3 className="detail-section-title">
+                      Purchase Cost & Asset History <span>{itemPurchases.length}</span>
+                    </h3>
+                    <div className="detail-record-list">
+                      {itemPurchases.length ? (
+                        itemPurchases.map((purchase, index) => {
+                          const addedAsset =
+                            (Number(purchase.quantity) || 0) * (Number(purchase.unitPrice) || 0);
+                          const stockAfterPurchase = Math.min(
+                            Number(detailsItem.stockQty) || 0,
+                            (Number(detailsItem.purchaseQty) || 0) +
+                              itemPurchases
+                                .slice(0, itemPurchases.length - index)
+                                .reduce((sum, entry) => sum + (Number(entry.quantity) || 0), 0),
+                          );
+                          const cumulativeAsset =
+                            stockAfterPurchase * (Number(purchase.unitPrice) || currentUnitCost);
+                          return (
+                            <div className="detail-record detail-record-in" key={purchase.id}>
+                              <div>
+                                <strong>{purchase.date}</strong>
+                                <small>
+                                  {purchase.supplier} • {purchase.id}
+                                </small>
+                              </div>
+                              <div className="detail-record-value">
+                                +{purchase.quantity} {purchase.unit}
+                                <small>
+                                  ₹{Number(purchase.unitPrice || 0).toFixed(2)} • +₹
+                                  {Number(addedAsset).toLocaleString('en-IN')}
+                                  <br />
+                                  Asset: ₹{Number(cumulativeAsset).toLocaleString('en-IN')}
+                                </small>
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="detail-empty">No purchase records found.</div>
+                      )}
+                    </div>
+                    <div className="detail-kpi detail-kpi-current" style={{ marginTop: '12px' }}>
+                      <small>Current Asset Amount</small>
+                      <strong>
+                        ₹
+                        {currentAsset.toLocaleString('en-IN', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </strong>
+                    </div>
+                  </>
+                )}
+                {detailsMode === 'quantity' && (
+                  <>
+                    <h3 className="detail-section-title">
+                      Purchase Records <span>{itemPurchases.length}</span>
+                    </h3>
+                    <div className="detail-record-list">
+                      {itemPurchases.length ? (
+                        itemPurchases.map((purchase) => (
+                          <div className="detail-record detail-record-in" key={purchase.id}>
+                            <div>
+                              <strong>{purchase.date}</strong>
+                              <small>
+                                {purchase.supplier} • {purchase.id}
+                              </small>
+                            </div>
+                            <div className="detail-record-value">
+                              +{purchase.quantity} {purchase.unit}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="detail-empty">No purchase records found.</div>
+                      )}
+                    </div>
+                    <h3 className="detail-section-title">
+                      Feeding / Usage Records <span>{itemFeeds.length}</span>
+                    </h3>
+                    <div className="detail-record-list">
+                      {itemFeeds.length ? (
+                        itemFeeds.map((feed) => (
+                          <div className="detail-record detail-record-out" key={feed.id}>
+                            <div>
+                              <strong>{feed.date}</strong>
+                              <small>{feed.pondName}</small>
+                            </div>
+                            <div className="detail-record-value">
+                              -{feed.quantityKg} {detailsItem.unit}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="detail-empty">No feeding records found.</div>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
-              <div className="inventory-detail-kpis" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '22px' }}>
-                <div className="detail-kpi detail-kpi-purchased"><small>Total Purchased</small><strong>{purchasedQty} {detailsItem.unit}</strong></div>
-                <div className="detail-kpi detail-kpi-used"><small>{detailsMode === 'cost' ? 'Current Unit Cost' : 'Total Used'}</small><strong>{detailsMode === 'cost' ? `₹${currentUnitCost.toFixed(2)}` : `${usedQty} ${detailsItem.unit}`}</strong></div>
-                <div className="detail-kpi detail-kpi-current"><small>Current Stock</small><strong>{detailsItem.stockQty} {detailsItem.unit}</strong></div>
-              </div>
-              {detailsMode === 'cost' && <><h3 className="detail-section-title">Purchase Cost & Asset History <span>{itemPurchases.length}</span></h3>
-              <div className="detail-record-list">{itemPurchases.length ? itemPurchases.map((purchase, index) => {
-                const addedAsset = (Number(purchase.quantity) || 0) * (Number(purchase.unitPrice) || 0);
-                const stockAfterPurchase = Math.min(Number(detailsItem.stockQty) || 0, (Number(detailsItem.purchaseQty) || 0) + itemPurchases.slice(0, itemPurchases.length - index).reduce((sum, entry) => sum + (Number(entry.quantity) || 0), 0));
-                const cumulativeAsset = stockAfterPurchase * (Number(purchase.unitPrice) || currentUnitCost);
-                return <div className="detail-record detail-record-in" key={purchase.id}><div><strong>{purchase.date}</strong><small>{purchase.supplier} • {purchase.id}</small></div><div className="detail-record-value">+{purchase.quantity} {purchase.unit}<small>₹{Number(purchase.unitPrice || 0).toFixed(2)} • +₹{Number(addedAsset).toLocaleString('en-IN')}<br />Asset: ₹{Number(cumulativeAsset).toLocaleString('en-IN')}</small></div></div>;
-              }) : <div className="detail-empty">No purchase records found.</div>}</div>
-              <div className="detail-kpi detail-kpi-current" style={{ marginTop: '12px' }}><small>Current Asset Amount</small><strong>₹{currentAsset.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div></>}
-              {detailsMode === 'quantity' && <><h3 className="detail-section-title">Purchase Records <span>{itemPurchases.length}</span></h3><div className="detail-record-list">{itemPurchases.length ? itemPurchases.map((purchase) => <div className="detail-record detail-record-in" key={purchase.id}><div><strong>{purchase.date}</strong><small>{purchase.supplier} • {purchase.id}</small></div><div className="detail-record-value">+{purchase.quantity} {purchase.unit}</div></div>) : <div className="detail-empty">No purchase records found.</div>}</div><h3 className="detail-section-title">Feeding / Usage Records <span>{itemFeeds.length}</span></h3><div className="detail-record-list">{itemFeeds.length ? itemFeeds.map((feed) => <div className="detail-record detail-record-out" key={feed.id}><div><strong>{feed.date}</strong><small>{feed.pondName}</small></div><div className="detail-record-value">-{feed.quantityKg} {detailsItem.unit}</div></div>) : <div className="detail-empty">No feeding records found.</div>}</div></>}
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
     </div>
   );
 }

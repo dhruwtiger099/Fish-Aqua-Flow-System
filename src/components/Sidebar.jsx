@@ -107,8 +107,15 @@ export default function Sidebar({ isOpen, onClose }) {
                 <Droplets size={20} />
               </div>
               <div>
-                <div style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '1.1rem', color: '#FFFFFF' }}>
-                  AquaFlow FMS
+                <div
+                  style={{
+                    fontFamily: 'Outfit',
+                    fontWeight: 800,
+                    fontSize: '1.1rem',
+                    color: '#FFFFFF',
+                  }}
+                >
+                  Aqua Flow System
                 </div>
                 <div style={{ fontSize: '0.72rem', color: '#C2E2EC', fontWeight: 500 }}>
                   Smart Aquaculture OS
@@ -152,7 +159,9 @@ export default function Sidebar({ isOpen, onClose }) {
                     width: '100%',
                     padding: '11px 14px',
                     borderRadius: '14px',
-                    border: isActive ? '1px solid rgba(34, 211, 238, 0.5)' : '1px solid transparent',
+                    border: isActive
+                      ? '1px solid rgba(34, 211, 238, 0.5)'
+                      : '1px solid transparent',
                     background: isActive
                       ? 'linear-gradient(90deg, rgba(8, 126, 164, 0.55) 0%, rgba(34, 211, 238, 0.22) 100%)'
                       : 'transparent',
@@ -224,8 +233,17 @@ export default function Sidebar({ isOpen, onClose }) {
             marginTop: '20px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '0.78rem', color: '#A0CFDF', fontWeight: 600 }}>Farm Health Index</span>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '8px',
+            }}
+          >
+            <span style={{ fontSize: '0.78rem', color: '#A0CFDF', fontWeight: 600 }}>
+              Farm Health Index
+            </span>
             <span style={{ fontSize: '0.82rem', color: '#22D3EE', fontWeight: 700 }}>No data</span>
           </div>
 

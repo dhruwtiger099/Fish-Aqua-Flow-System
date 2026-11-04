@@ -1,17 +1,10 @@
 import React, { useState } from 'react';
 import { useFarm } from '../context/FarmContext';
-import {
-  Utensils,
-  Plus,
-  Search,
-  Calendar,
-  Clock,
-  CheckCircle2,
-  Filter,
-} from 'lucide-react';
+import { Utensils, Plus, Search, Calendar, Clock, CheckCircle2, Filter } from 'lucide-react';
+import DataLimitControl from '../components/DataLimitControl';
 
 export default function FeedingView({ onOpenFeeding }) {
-  const { feedingLogs, ponds } = useFarm();
+  const { feedingLogs, ponds, limitData } = useFarm();
   const [selectedPondFilter, setSelectedPondFilter] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -23,6 +16,7 @@ export default function FeedingView({ onOpenFeeding }) {
       log.pondName.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesPond && matchesSearch;
   });
+  const visibleLogs = limitData(filteredLogs);
 
   const totalFedToday = feedingLogs
     .filter((l) => l.date === new Date().toISOString().split('T')[0])
@@ -81,9 +75,7 @@ export default function FeedingView({ onOpenFeeding }) {
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#087EA4', marginTop: '3px' }}>
             {totalFedToday} <span style={{ fontSize: '0.85rem' }}>kg</span>
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#16A085', marginTop: '2px' }}>
-            Today
-          </div>
+          <div style={{ fontSize: '0.72rem', color: '#16A085', marginTop: '2px' }}>Today</div>
         </div>
 
         <div className="glass-surface" style={{ padding: '14px' }}>
@@ -121,13 +113,19 @@ export default function FeedingView({ onOpenFeeding }) {
 
         <div className="mobile-scroll-pills">
           {['All', ...ponds.map((p) => p.id)].map((pondId) => {
-            const pondName = pondId === 'All' ? 'All Ponds' : ponds.find((p) => p.id === pondId)?.code;
+            const pondName =
+              pondId === 'All' ? 'All Ponds' : ponds.find((p) => p.id === pondId)?.code;
             return (
               <button
                 key={pondId}
                 onClick={() => setSelectedPondFilter(pondId)}
                 className={`btn btn-sm ${selectedPondFilter === pondId ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ borderRadius: '20px', padding: '5px 12px', fontSize: '0.78rem', flexShrink: 0 }}
+                style={{
+                  borderRadius: '20px',
+                  padding: '5px 12px',
+                  fontSize: '0.78rem',
+                  flexShrink: 0,
+                }}
               >
                 {pondName}
               </button>
@@ -138,12 +136,14 @@ export default function FeedingView({ onOpenFeeding }) {
 
       {/* Mobile Record Cards */}
       <div className="mobile-cards-container lg-hidden">
-        {filteredLogs.map((log) => (
+        {visibleLogs.map((log) => (
           <div key={log.id} className="mobile-record-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
+            >
               <div>
                 <div style={{ fontWeight: 700, color: '#063B5C', fontSize: '0.94rem' }}>
-                  {log.pondName.split('—')[0]}
+                  {String(log.pondName || '').split('—')[0]}
                 </div>
                 <div style={{ fontSize: '0.74rem', color: '#547185' }}>
                   {log.rationNumber} • {log.date} ({log.time})
@@ -158,7 +158,7 @@ export default function FeedingView({ onOpenFeeding }) {
                   fontSize: '0.7rem',
                 }}
               >
-                {log.feedingResponse.split('/')[0]}
+                {String(log.feedingResponse || '').split('/')[0]}
               </span>
             </div>
 
@@ -189,7 +189,8 @@ export default function FeedingView({ onOpenFeeding }) {
             </div>
 
             <div style={{ fontSize: '0.76rem', color: '#547185', marginTop: '2px' }}>
-              Tech: <strong>{log.technician}</strong> • Temp: {log.waterTempC ? `${log.waterTempC}°C` : 'N/A'}
+              Tech: <strong>{log.technician}</strong> • Temp:{' '}
+              {log.waterTempC ? `${log.waterTempC}°C` : 'N/A'}
             </div>
           </div>
         ))}
@@ -212,7 +213,7 @@ export default function FeedingView({ onOpenFeeding }) {
             </tr>
           </thead>
           <tbody>
-            {filteredLogs.map((log) => (
+            {visibleLogs.map((log) => (
               <tr key={log.id}>
                 <td>
                   <div style={{ fontWeight: 600, color: '#063B5C' }}>{log.date}</div>
@@ -220,7 +221,7 @@ export default function FeedingView({ onOpenFeeding }) {
                 </td>
                 <td>
                   <span className="badge badge-ocean" style={{ fontSize: '0.76rem' }}>
-                    {log.pondName.split('—')[0]}
+                    {String(log.pondName || '').split('—')[0]}
                   </span>
                 </td>
                 <td style={{ fontWeight: 600 }}>{log.rationNumber}</td>
@@ -250,6 +251,10 @@ export default function FeedingView({ onOpenFeeding }) {
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="data-card-heading data-card-heading-table data-card-heading-bottom">
+        <span>Feeding records</span>
+        <DataLimitControl total={filteredLogs.length} />
       </div>
     </div>
   );

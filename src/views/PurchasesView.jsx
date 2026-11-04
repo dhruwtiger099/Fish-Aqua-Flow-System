@@ -11,9 +11,10 @@ import {
   Clock,
   Building2,
 } from 'lucide-react';
+import DataLimitControl from '../components/DataLimitControl';
 
 export default function PurchasesView({ onOpenPurchase }) {
-  const { purchases } = useFarm();
+  const { purchases, limitData } = useFarm();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
 
@@ -26,6 +27,7 @@ export default function PurchasesView({ onOpenPurchase }) {
       (po.invoiceNumber && po.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()));
     return matchesStatus && matchesSearch;
   });
+  const visiblePurchases = limitData(filteredPurchases);
 
   const totalSpent = purchases.reduce((sum, po) => sum + (Number(po.totalAmount) || 0), 0);
 
@@ -67,9 +69,15 @@ export default function PurchasesView({ onOpenPurchase }) {
         }}
       >
         <div className="glass-surface" style={{ padding: '14px' }}>
-          <div style={{ fontSize: '0.78rem', color: '#547185', fontWeight: 600 }}>Total Procurement</div>
+          <div style={{ fontSize: '0.78rem', color: '#547185', fontWeight: 600 }}>
+            Total Procurement
+          </div>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#063B5C', marginTop: '3px' }}>
-            ₹{totalSpent.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            ₹
+            {totalSpent.toLocaleString('en-IN', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            })}
           </div>
           <div style={{ fontSize: '0.72rem', color: '#087EA4', marginTop: '2px' }}>
             {purchases.length} PO orders
@@ -77,7 +85,9 @@ export default function PurchasesView({ onOpenPurchase }) {
         </div>
 
         <div className="glass-surface" style={{ padding: '14px' }}>
-          <div style={{ fontSize: '0.78rem', color: '#547185', fontWeight: 600 }}>Active Suppliers</div>
+          <div style={{ fontSize: '0.78rem', color: '#547185', fontWeight: 600 }}>
+            Active Suppliers
+          </div>
           <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#087EA4', marginTop: '3px' }}>
             {new Set(purchases.map((p) => p.supplier)).size} Vendors
           </div>
@@ -113,7 +123,12 @@ export default function PurchasesView({ onOpenPurchase }) {
               key={st}
               onClick={() => setStatusFilter(st)}
               className={`btn btn-sm ${statusFilter === st ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ borderRadius: '20px', padding: '5px 12px', fontSize: '0.78rem', flexShrink: 0 }}
+              style={{
+                borderRadius: '20px',
+                padding: '5px 12px',
+                fontSize: '0.78rem',
+                flexShrink: 0,
+              }}
             >
               {st}
             </button>
@@ -135,9 +150,11 @@ export default function PurchasesView({ onOpenPurchase }) {
 
       {/* Mobile Record Cards */}
       <div className="mobile-cards-container lg-hidden">
-        {filteredPurchases.map((po) => (
+        {visiblePurchases.map((po) => (
           <div key={po.id} className="mobile-record-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
+            >
               <div>
                 <div style={{ fontWeight: 700, color: '#063B5C', fontSize: '0.94rem' }}>
                   {po.itemName}
@@ -148,7 +165,11 @@ export default function PurchasesView({ onOpenPurchase }) {
               </div>
               <span
                 className={`badge ${
-                  po.status === 'Received' ? 'badge-active' : po.status === 'In Transit' ? 'badge-warning' : 'badge-ocean'
+                  po.status === 'Received'
+                    ? 'badge-active'
+                    : po.status === 'In Transit'
+                      ? 'badge-warning'
+                      : 'badge-ocean'
                 }`}
                 style={{ fontSize: '0.7rem' }}
               >
@@ -208,7 +229,7 @@ export default function PurchasesView({ onOpenPurchase }) {
             </tr>
           </thead>
           <tbody>
-            {filteredPurchases.map((po) => (
+            {visiblePurchases.map((po) => (
               <tr key={po.id}>
                 <td>
                   <div style={{ fontWeight: 700, color: '#063B5C' }}>{po.id}</div>
@@ -225,9 +246,12 @@ export default function PurchasesView({ onOpenPurchase }) {
                     {po.quantity.toLocaleString()} {po.unit}
                   </span>
                 </td>
-                <td style={{ color: '#547185' }}>₹{po.unitPrice} / {po.unit}</td>
+                <td style={{ color: '#547185' }}>
+                  ₹{po.unitPrice} / {po.unit}
+                </td>
                 <td style={{ fontSize: '0.82rem', color: '#547185' }}>
-                  Tax: {po.taxRate || 0}% • Freight: ₹{Number(po.shippingFee || 0).toLocaleString('en-IN')}
+                  Tax: {po.taxRate || 0}% • Freight: ₹
+                  {Number(po.shippingFee || 0).toLocaleString('en-IN')}
                 </td>
                 <td>
                   <span style={{ fontWeight: 800, color: '#087EA4', fontSize: '1.05rem' }}>
@@ -237,7 +261,11 @@ export default function PurchasesView({ onOpenPurchase }) {
                 <td>
                   <span
                     className={`badge ${
-                      po.status === 'Received' ? 'badge-active' : po.status === 'In Transit' ? 'badge-warning' : 'badge-ocean'
+                      po.status === 'Received'
+                        ? 'badge-active'
+                        : po.status === 'In Transit'
+                          ? 'badge-warning'
+                          : 'badge-ocean'
                     }`}
                   >
                     {po.status}
@@ -245,16 +273,31 @@ export default function PurchasesView({ onOpenPurchase }) {
                 </td>
                 <td style={{ fontSize: '0.82rem' }}>
                   {po.attachmentUrl ? (
-                    <a href={po.attachmentUrl} target="_blank" rel="noreferrer" style={{ color: '#087EA4', fontWeight: 700 }}>View file</a>
+                    <a
+                      href={po.attachmentUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ color: '#087EA4', fontWeight: 700 }}
+                    >
+                      View file
+                    </a>
                   ) : po.attachmentName ? (
-                    <span title={po.attachmentName} style={{ color: '#547185' }}>📎 {po.attachmentName}</span>
-                  ) : '—'}
+                    <span title={po.attachmentName} style={{ color: '#547185' }}>
+                      Attachment: {po.attachmentName}
+                    </span>
+                  ) : (
+                    '—'
+                  )}
                 </td>
                 <td style={{ fontSize: '0.84rem', color: '#547185' }}>{po.receivedBy}</td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="data-card-heading data-card-heading-table data-card-heading-bottom">
+        <span>Purchase records</span>
+        <DataLimitControl total={filteredPurchases.length} />
       </div>
     </div>
   );

@@ -54,10 +54,18 @@ export default function PondCard({ pond, index = 0, displayName, onOpenDetail })
   };
 
   // Staggered subtle floating motion class
-  const floatClass = index === 0 ? 'floating-subtle' : index === 1 ? 'floating-subtle-delay-1' : 'floating-subtle-delay-2';
+  const floatClass =
+    index === 0
+      ? 'floating-subtle'
+      : index === 1
+        ? 'floating-subtle-delay-1'
+        : 'floating-subtle-delay-2';
 
   // Calculate cycle progress percentage
-  const cycleProgress = pond.cycleTotalDays > 0 ? Math.min(100, Math.round((pond.cycleDay / pond.cycleTotalDays) * 100)) : 0;
+  const cycleProgress =
+    pond.cycleTotalDays > 0
+      ? Math.min(100, Math.round((pond.cycleDay / pond.cycleTotalDays) * 100))
+      : 0;
 
   return (
     <div
@@ -73,7 +81,8 @@ export default function PondCard({ pond, index = 0, displayName, onOpenDetail })
         position: 'relative',
         overflow: 'hidden',
         border: '1.5px solid rgba(255, 255, 255, 0.75)',
-        background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(224, 247, 250, 0.68) 100%)',
+        background:
+          'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(224, 247, 250, 0.68) 100%)',
         transformOrigin: 'center center',
       }}
     >
@@ -85,15 +94,24 @@ export default function PondCard({ pond, index = 0, displayName, onOpenDetail })
           left: 0,
           right: 0,
           height: '4px',
-          background: pond.status === 'Active'
-            ? 'linear-gradient(90deg, #22D3EE 0%, #087EA4 50%, #16A085 100%)'
-            : 'linear-gradient(90deg, #E9A23B 0%, #087EA4 100%)',
+          background:
+            pond.status === 'Active'
+              ? 'linear-gradient(90deg, #22D3EE 0%, #087EA4 50%, #16A085 100%)'
+              : 'linear-gradient(90deg, #E9A23B 0%, #087EA4 100%)',
         }}
       />
 
       {/* Card Header: Code, Name & Status Badge */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', marginBottom: '8px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            gap: '10px',
+            marginBottom: '8px',
+          }}
+        >
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span
@@ -107,7 +125,17 @@ export default function PondCard({ pond, index = 0, displayName, onOpenDetail })
                 {displayName || pond.name}
               </span>
             </div>
-            <div style={{ fontSize: '0.82rem', color: '#547185', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px', marginTop: '2px' }}>
+            <div
+              style={{
+                fontSize: '0.82rem',
+                color: '#547185',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                marginTop: '2px',
+              }}
+            >
               <Fish size={14} color="#087EA4" />
               <span>{pond.species}</span>
             </div>
@@ -125,8 +153,24 @@ export default function PondCard({ pond, index = 0, displayName, onOpenDetail })
             border: '1px solid rgba(8, 126, 164, 0.12)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '6px' }}>
-            <span style={{ color: '#063B5C', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: '0.78rem',
+              marginBottom: '6px',
+            }}
+          >
+            <span
+              style={{
+                color: '#063B5C',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+              }}
+            >
               <Calendar size={13} color="#087EA4" />
               {pond.cycle}
             </span>
@@ -173,14 +217,27 @@ export default function PondCard({ pond, index = 0, displayName, onOpenDetail })
               border: '1px solid rgba(8, 126, 164, 0.14)',
             }}
           >
-            <div style={{ fontSize: '0.74rem', color: '#547185', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <div
+              style={{
+                fontSize: '0.74rem',
+                color: '#547185',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+              }}
+            >
               <Droplets size={13} color="#087EA4" />
               <span>Today's Feed</span>
             </div>
-            <div style={{ fontSize: '1.18rem', fontWeight: 800, color: '#063B5C', marginTop: '2px' }}>
+            <div
+              style={{ fontSize: '1.18rem', fontWeight: 800, color: '#063B5C', marginTop: '2px' }}
+            >
               {pond.todayFeedKg > 0 ? `${pond.todayFeedKg} kg` : '0 kg'}
             </div>
-            <div style={{ fontSize: '0.72rem', color: '#087EA4', fontWeight: 600, marginTop: '2px' }}>
+            <div
+              style={{ fontSize: '0.72rem', color: '#087EA4', fontWeight: 600, marginTop: '2px' }}
+            >
               {pond.feedRationsCompleted} / {pond.feedRationsPlanned} rations fed
             </div>
           </div>
@@ -195,14 +252,32 @@ export default function PondCard({ pond, index = 0, displayName, onOpenDetail })
               border: '1px solid rgba(8, 126, 164, 0.14)',
             }}
           >
-            <div style={{ fontSize: '0.74rem', color: '#547185', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <div
+              style={{
+                fontSize: '0.74rem',
+                color: '#547185',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
               <Wind size={13} color="#087EA4" />
               <span>Aeration</span>
             </div>
-            <div style={{ fontSize: '0.98rem', fontWeight: 700, color: '#063B5C', marginTop: '2px' }}>
+            <div
+              style={{ fontSize: '0.98rem', fontWeight: 700, color: '#063B5C', marginTop: '2px' }}
+            >
               {pond.aeratorsActive}/{pond.aeratorsTotal} Running
             </div>
-            <div style={{ fontSize: '0.72rem', color: pond.aeratorsActive > 0 ? '#16A085' : '#E9A23B', fontWeight: 600, marginTop: '2px' }}>
+            <div
+              style={{
+                fontSize: '0.72rem',
+                color: pond.aeratorsActive > 0 ? '#16A085' : '#E9A23B',
+                fontWeight: 600,
+                marginTop: '2px',
+              }}
+            >
               {pond.aeratorsActive > 0 ? 'Optimal Flow' : 'Offline'}
             </div>
           </div>
@@ -211,7 +286,6 @@ export default function PondCard({ pond, index = 0, displayName, onOpenDetail })
         {/* Live Water-Quality Telemetry Pill Strip */}
         <div
           style={{
-            display: 'none',
             background: 'linear-gradient(180deg, #F0F9FB 0%, #E8F5F8 100%)',
             borderRadius: '12px',
             padding: '10px 12px',
@@ -223,8 +297,23 @@ export default function PondCard({ pond, index = 0, displayName, onOpenDetail })
           }}
         >
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '0.68rem', color: '#547185', textTransform: 'uppercase', fontWeight: 700 }}>DO</div>
-            <div style={{ fontSize: '0.9rem', fontWeight: 800, color: pond.waterQuality.do < 5 ? '#E05260' : '#087EA4' }}>
+            <div
+              style={{
+                fontSize: '0.68rem',
+                color: '#547185',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+              }}
+            >
+              DO
+            </div>
+            <div
+              style={{
+                fontSize: '0.9rem',
+                fontWeight: 800,
+                color: pond.waterQuality.do < 5 ? '#E05260' : '#087EA4',
+              }}
+            >
               {pond.waterQuality.do} <span style={{ fontSize: '0.65rem' }}>mg/L</span>
             </div>
           </div>
@@ -232,7 +321,16 @@ export default function PondCard({ pond, index = 0, displayName, onOpenDetail })
           <div style={{ width: '1px', height: '22px', background: 'rgba(8, 126, 164, 0.15)' }} />
 
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '0.68rem', color: '#547185', textTransform: 'uppercase', fontWeight: 700 }}>Temp</div>
+            <div
+              style={{
+                fontSize: '0.68rem',
+                color: '#547185',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+              }}
+            >
+              Temp
+            </div>
             <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#063B5C' }}>
               {pond.waterQuality.temp}°C
             </div>
@@ -241,7 +339,16 @@ export default function PondCard({ pond, index = 0, displayName, onOpenDetail })
           <div style={{ width: '1px', height: '22px', background: 'rgba(8, 126, 164, 0.15)' }} />
 
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '0.68rem', color: '#547185', textTransform: 'uppercase', fontWeight: 700 }}>pH</div>
+            <div
+              style={{
+                fontSize: '0.68rem',
+                color: '#547185',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+              }}
+            >
+              pH
+            </div>
             <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#063B5C' }}>
               {pond.waterQuality.ph}
             </div>
@@ -250,7 +357,16 @@ export default function PondCard({ pond, index = 0, displayName, onOpenDetail })
           <div style={{ width: '1px', height: '22px', background: 'rgba(8, 126, 164, 0.15)' }} />
 
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '0.68rem', color: '#547185', textTransform: 'uppercase', fontWeight: 700 }}>NH3</div>
+            <div
+              style={{
+                fontSize: '0.68rem',
+                color: '#547185',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+              }}
+            >
+              NH3
+            </div>
             <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#16A085' }}>
               {pond.waterQuality.ammonia} <span style={{ fontSize: '0.65rem' }}>ppm</span>
             </div>

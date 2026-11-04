@@ -29,12 +29,17 @@ export default function FeedingModal({ initialPond, onClose }) {
 
   const [selectedFeedItemId, setSelectedFeedItemId] = useState(feedItems[0]?.id || '');
   const pondLabels = ['Nursery', 'Pond A', 'Pond B'];
-  const formPonds = ponds.slice(0, 3).map((pond, index) => ({ ...pond, displayName: pondLabels[index] }));
+  const formPonds = ponds
+    .slice(0, 3)
+    .map((pond, index) => ({ ...pond, displayName: pondLabels[index] }));
   const [pondFeeds, setPondFeeds] = useState({});
   const [pondQuantities, setPondQuantities] = useState({});
   const [submitError, setSubmitError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const totalEnteredKg = formPonds.reduce((sum, pond) => sum + (Number(pondQuantities[pond.id]) || 0), 0);
+  const totalEnteredKg = formPonds.reduce(
+    (sum, pond) => sum + (Number(pondQuantities[pond.id]) || 0),
+    0,
+  );
 
   const activePond = useMemo(() => {
     return ponds.find((p) => p.id === selectedPondId);
@@ -48,7 +53,7 @@ export default function FeedingModal({ initialPond, onClose }) {
   const recommendedDailyKg = useMemo(() => {
     if (!activePond || activePond.estimatedBiomassKg <= 0) return 0;
     const ratePercent = activePond.species.includes('Tilapia') ? 1.6 : 1.8;
-    return Math.round((activePond.estimatedBiomassKg * (ratePercent / 100)));
+    return Math.round(activePond.estimatedBiomassKg * (ratePercent / 100));
   }, [activePond]);
 
   const recommendedRationKg = useMemo(() => {
@@ -59,9 +64,11 @@ export default function FeedingModal({ initialPond, onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const entries = formPonds.filter((pond) => pondFeeds[pond.id] && Number(pondQuantities[pond.id]) > 0);
+    const entries = formPonds.filter(
+      (pond) => pondFeeds[pond.id] && Number(pondQuantities[pond.id]) > 0,
+    );
     if (!entries.length) {
-      setSubmitError('Feed type select karke quantity enter karein.');
+      setSubmitError('Select a feed type and enter a valid quantity.');
       return;
     }
     setIsSubmitting(true);
@@ -69,7 +76,14 @@ export default function FeedingModal({ initialPond, onClose }) {
     entries.forEach((pond) => {
       const feedItemId = pondFeeds[pond.id];
       const feed = inventory.find((item) => item.id === feedItemId);
-      logFeeding({ pondId: pond.id, pondName: pond.displayName, feedItemId, feedItem: feed?.name || 'Standard Pellets', quantityKg: Number(pondQuantities[pond.id]), date: feedingDate });
+      logFeeding({
+        pondId: pond.id,
+        pondName: pond.displayName,
+        feedItemId,
+        feedItem: feed?.name || 'Standard Pellets',
+        quantityKg: Number(pondQuantities[pond.id]),
+        date: feedingDate,
+      });
     });
 
     onClose();
@@ -116,7 +130,11 @@ export default function FeedingModal({ initialPond, onClose }) {
             </div>
           </div>
 
-          <button onClick={onClose} className="btn-icon" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+          <button
+            onClick={onClose}
+            className="btn-icon"
+            style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+          >
             <X size={20} color="#063B5C" />
           </button>
         </div>
@@ -124,22 +142,57 @@ export default function FeedingModal({ initialPond, onClose }) {
         <form onSubmit={handleSubmit}>
           {/* Pond-wise feed allocation */}
           <div className="form-group">
-            <label className="form-label">Pond-wise Feed Allocation <span className="required-star">*</span></label>
+            <label className="form-label">
+              Pond-wise Feed Allocation <span className="required-star">*</span>
+            </label>
             <div style={{ display: 'grid', gap: '12px' }}>
               {formPonds.map((pond) => {
                 const chosenFeedId = pondFeeds[pond.id] || '';
                 const chosenFeed = inventory.find((item) => item.id === chosenFeedId);
                 return (
-                  <div key={pond.id} style={{ padding: '14px', borderRadius: '14px', background: 'rgba(8, 126, 164, 0.06)', border: '1px solid rgba(8, 126, 164, 0.16)' }}>
-                    <div style={{ fontWeight: 800, color: '#063B5C', marginBottom: '8px' }}>{pond.displayName}</div>
-                    <select className="form-select" value={chosenFeedId} onChange={(e) => setPondFeeds((prev) => ({ ...prev, [pond.id]: e.target.value }))}>
-                      <option value="">Select Types of Feed</option>
-                      {feedItems.map((feed) => <option key={feed.id} value={feed.id}>{feed.name} ({feed.stockQty} kg available)</option>)}
+                  <div
+                    key={pond.id}
+                    style={{
+                      padding: '14px',
+                      borderRadius: '14px',
+                      background: 'rgba(8, 126, 164, 0.06)',
+                      border: '1px solid rgba(8, 126, 164, 0.16)',
+                    }}
+                  >
+                    <div style={{ fontWeight: 800, color: '#063B5C', marginBottom: '8px' }}>
+                      {pond.displayName}
+                    </div>
+                    <select
+                      className="form-select"
+                      value={chosenFeedId}
+                      onChange={(e) =>
+                        setPondFeeds((prev) => ({ ...prev, [pond.id]: e.target.value }))
+                      }
+                    >
+                      <option value="">Select feed type</option>
+                      {feedItems.map((feed) => (
+                        <option key={feed.id} value={feed.id}>
+                          {feed.name} ({feed.stockQty} kg available)
+                        </option>
+                      ))}
                     </select>
                     {chosenFeed && (
                       <div style={{ marginTop: '10px' }}>
-                        <label className="form-label">Quantity (kg) <span className="required-star">*</span></label>
-                        <input type="number" min="0.5" step="0.5" inputMode="decimal" className="form-input" value={pondQuantities[pond.id] || ''} placeholder="Enter quantity" onChange={(e) => setPondQuantities((prev) => ({ ...prev, [pond.id]: e.target.value }))} />
+                        <label className="form-label">
+                          Quantity (kg) <span className="required-star">*</span>
+                        </label>
+                        <input
+                          type="number"
+                          min="0.5"
+                          step="0.5"
+                          inputMode="decimal"
+                          className="form-input"
+                          value={pondQuantities[pond.id] || ''}
+                          placeholder="Enter quantity"
+                          onChange={(e) =>
+                            setPondQuantities((prev) => ({ ...prev, [pond.id]: e.target.value }))
+                          }
+                        />
                       </div>
                     )}
                   </div>
@@ -148,19 +201,42 @@ export default function FeedingModal({ initialPond, onClose }) {
             </div>
           </div>
 
-          <div style={{ margin: '12px 0 16px', padding: '12px 14px', borderRadius: '12px', background: 'linear-gradient(135deg, #E0F7FA, #ECFEFF)', border: '1px solid rgba(8, 126, 164, 0.2)' }}>
+          <div
+            style={{
+              margin: '12px 0 16px',
+              padding: '12px 14px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, #E0F7FA, #ECFEFF)',
+              border: '1px solid rgba(8, 126, 164, 0.2)',
+            }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ color: '#087EA4', fontWeight: 700 }}>Live Feed Total</span>
-              <strong style={{ color: '#063B5C', fontSize: '1.15rem' }}>{totalEnteredKg.toFixed(1)} kg</strong>
+              <strong style={{ color: '#063B5C', fontSize: '1.15rem' }}>
+                {totalEnteredKg.toFixed(1)} kg
+              </strong>
             </div>
             <div style={{ color: '#547185', fontSize: '0.75rem', marginTop: '4px' }}>
-              {formPonds.filter((pond) => Number(pondQuantities[pond.id]) > 0).map((pond) => `${pond.displayName}: ${Number(pondQuantities[pond.id]).toFixed(1)} kg`).join(' • ') || 'Quantity enter karte hi total yahan update hoga'}
+              {formPonds
+                .filter((pond) => Number(pondQuantities[pond.id]) > 0)
+                .map(
+                  (pond) => `${pond.displayName}: ${Number(pondQuantities[pond.id]).toFixed(1)} kg`,
+                )
+                .join(' • ') || 'Enter quantities to view the allocation summary'}
             </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Feeding Date <span className="required-star">*</span></label>
-            <input type="date" className="form-input" value={feedingDate} onChange={(e) => setFeedingDate(e.target.value)} required />
+            <label className="form-label">
+              Feeding Date <span className="required-star">*</span>
+            </label>
+            <input
+              type="date"
+              className="form-input"
+              value={feedingDate}
+              onChange={(e) => setFeedingDate(e.target.value)}
+              required
+            />
           </div>
 
           {/* Feed Type Selection & Available Stock */}
@@ -272,11 +348,20 @@ export default function FeedingModal({ initialPond, onClose }) {
               borderTop: '1px solid rgba(8, 126, 164, 0.15)',
             }}
           >
-            {submitError && <span style={{ color: '#C2410C', fontSize: '0.78rem', marginRight: 'auto' }}>{submitError}</span>}
+            {submitError && (
+              <span style={{ color: '#C2410C', fontSize: '0.78rem', marginRight: 'auto' }}>
+                {submitError}
+              </span>
+            )}
             <button type="button" className="btn btn-secondary" onClick={onClose}>
               Cancel
             </button>
-            <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={isSubmitting}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+            >
               {isSubmitting ? <DoubleRingLoader /> : <CheckCircle2 size={16} />}
               <span>{isSubmitting ? 'Saving...' : 'Log Feed & Deduct Inventory'}</span>
             </button>
