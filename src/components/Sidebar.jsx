@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useFarm } from '../context/FarmContext';
+import { formatCurrency } from '../shared/utils/format';
 import {
   LayoutDashboard,
   Fish,
@@ -13,10 +14,39 @@ import {
   X,
   Droplets,
   HelpCircle,
+  Wallet,
+  TrendingUp,
+  TrendingDown,
 } from 'lucide-react';
 
 export default function Sidebar({ isOpen, onClose }) {
-  const { activeTab, setActiveTab, ponds, inventory } = useFarm();
+  const {
+    activeTab,
+    setActiveTab,
+    ponds,
+    inventory,
+    purchases = [],
+    expenses = [],
+    sales = [],
+  } = useFarm();
+
+  const financialSummary = useMemo(() => {
+    const totalPurchases = purchases.reduce((sum, item) => sum + (Number(item.totalAmount) || 0), 0);
+    const totalExpenses = expenses.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+    const totalHarvestCost = sales.reduce((sum, item) => sum + (Number(item.harvestCost) || 0), 0);
+    const totalCost = totalPurchases + totalExpenses + totalHarvestCost;
+
+    const totalRevenue = sales.reduce(
+      (sum, item) =>
+        sum + (Number(item.grossRevenue) || Number(item.weightKg) * Number(item.pricePerKg) || 0),
+      0,
+    );
+
+    const netProfit = totalRevenue - totalCost;
+    const isProfitable = netProfit >= 0;
+
+    return { totalCost, totalRevenue, netProfit, isProfitable };
+  }, [purchases, expenses, sales]);
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -223,14 +253,15 @@ export default function Sidebar({ isOpen, onClose }) {
           </nav>
         </div>
 
-        {/* Bottom Card: Farm Health & System status */}
+        {/* Bottom Card: Financial Overview (Cost & Profit) */}
         <div
           style={{
             background: 'rgba(255, 255, 255, 0.07)',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
+            border: '1px solid rgba(255, 255, 255, 0.14)',
             borderRadius: '16px',
             padding: '14px',
             marginTop: '20px',
+            backdropFilter: 'blur(8px)',
           }}
         >
           <div
@@ -238,37 +269,104 @@ export default function Sidebar({ isOpen, onClose }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: '8px',
+              marginBottom: '10px',
             }}
           >
-            <span style={{ fontSize: '0.78rem', color: '#A0CFDF', fontWeight: 600 }}>
-              Farm Health Index
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Wallet size={15} color="#22D3EE" />
+              <span style={{ fontSize: '0.8rem', color: '#E0F2FE', fontWeight: 700 }}>
+                Cost & Profit
+              </span>
+            </div>
+            <span
+              style={{
+                fontSize: '0.68rem',
+                padding: '2px 7px',
+                borderRadius: '6px',
+                fontWeight: 700,
+                background: financialSummary.isProfitable
+                  ? 'rgba(34, 197, 94, 0.18)'
+                  : 'rgba(239, 68, 68, 0.18)',
+                color: financialSummary.isProfitable ? '#4ADE80' : '#FCA5A5',
+                border: `1px solid ${
+                  financialSummary.isProfitable
+                    ? 'rgba(34, 197, 94, 0.35)'
+                    : 'rgba(239, 68, 68, 0.35)'
+                }`,
+              }}
+            >
+              {financialSummary.isProfitable ? 'Profitable' : 'Loss / Pending'}
             </span>
-            <span style={{ fontSize: '0.82rem', color: '#22D3EE', fontWeight: 700 }}>No data</span>
           </div>
 
           <div
             style={{
-              width: '100%',
-              height: '6px',
-              borderRadius: '4px',
-              background: 'rgba(255, 255, 255, 0.12)',
-              overflow: 'hidden',
-              marginBottom: '8px',
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '8px',
+              marginBottom: '10px',
             }}
           >
             <div
               style={{
-                width: '0%',
-                height: '100%',
-                background: 'linear-gradient(90deg, #16A085 0%, #22D3EE 100%)',
-                borderRadius: '4px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                padding: '8px 10px',
+                borderRadius: '10px',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
               }}
-            />
+            >
+              <div style={{ fontSize: '0.68rem', color: '#A0CFDF', fontWeight: 600 }}>Total Cost</div>
+              <div
+                style={{
+                  fontSize: '0.88rem',
+                  fontWeight: 800,
+                  color: '#F87171',
+                  marginTop: '2px',
+                  fontFamily: 'Outfit, sans-serif',
+                }}
+              >
+                {formatCurrency(financialSummary.totalCost)}
+              </div>
+            </div>
+
+            <div
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                padding: '8px 10px',
+                borderRadius: '10px',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+              }}
+            >
+              <div style={{ fontSize: '0.68rem', color: '#A0CFDF', fontWeight: 600 }}>Net Profit</div>
+              <div
+                style={{
+                  fontSize: '0.88rem',
+                  fontWeight: 800,
+                  color: financialSummary.isProfitable ? '#4ADE80' : '#F87171',
+                  marginTop: '2px',
+                  fontFamily: 'Outfit, sans-serif',
+                }}
+              >
+                {formatCurrency(financialSummary.netProfit)}
+              </div>
+            </div>
           </div>
 
-          <div style={{ fontSize: '0.72rem', color: '#88B7CA', lineHeight: 1.3 }}>
-            Add pond operations to begin tracking
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: '0.72rem',
+              color: '#88B7CA',
+              paddingTop: '6px',
+              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+            }}
+          >
+            <span>Total Revenue</span>
+            <span style={{ fontWeight: 700, color: '#E0F2FE' }}>
+              {formatCurrency(financialSummary.totalRevenue)}
+            </span>
           </div>
         </div>
       </aside>
