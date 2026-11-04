@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import MobileBottomNav from './components/MobileBottomNav';
 import Toast from './components/Toast';
+import InstallAppBanner from './components/InstallAppBanner';
 
 import DashboardView from './views/DashboardView';
 import FeedingView from './views/FeedingView';
@@ -240,6 +241,9 @@ export default function App() {
             setShowSearchModal(true);
           }}
         />
+
+        {/* Prominent Mobile App Install Banner */}
+        <InstallAppBanner />
         {syncState.status === 'error' && (
           <div className="data-sync-banner" role="status">
             {syncState.message}

@@ -189,23 +189,29 @@ export default function Navbar({ onToggleSidebar, onOpenSearchModal }) {
             aria-label="Install Aqua Flow App"
             title="Install Aqua Flow App"
             style={{
-              padding: '6px 12px',
+              padding: '0 10px',
               height: '36px',
-              background: '#0B7285',
-              border: 'none',
+              minWidth: '36px',
+              background: 'linear-gradient(135deg, #063B5C 0%, #087EA4 100%)',
+              border: '1px solid rgba(8, 126, 164, 0.3)',
               borderRadius: '10px',
               color: '#FFFFFF',
-              fontWeight: 600,
-              fontSize: '0.8rem',
+              fontWeight: 700,
+              fontSize: '0.78rem',
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '6px',
               cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(11, 114, 133, 0.3)',
+              flexShrink: 0,
+              boxShadow: '0 2px 8px rgba(8, 126, 164, 0.25)',
+              whiteSpace: 'nowrap',
             }}
           >
-            <Download size={15} />
-            <span style={{ fontSize: '0.78rem' }}>Install App</span>
+            <Download size={16} color="#FFFFFF" />
+            <span className="hide-on-mobile-sm" style={{ whiteSpace: 'nowrap' }}>
+              Install App
+            </span>
           </button>
         )}
 
