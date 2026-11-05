@@ -267,6 +267,7 @@ export default function PondDetailModal({ pond, onClose, onLogFeeding, onRecordH
 
           {/* Modal Actions */}
           <div
+            className="modal-actions"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -277,10 +278,15 @@ export default function PondDetailModal({ pond, onClose, onLogFeeding, onRecordH
               borderTop: '1px solid rgba(8, 126, 164, 0.15)',
             }}
           >
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onClose}
+              style={{ flexShrink: 0, minWidth: '90px', whiteSpace: 'nowrap' }}
+            >
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" style={{ minWidth: 0, textAlign: 'center' }}>
               <Save size={16} />
               <span>Save Changes</span>
             </button>

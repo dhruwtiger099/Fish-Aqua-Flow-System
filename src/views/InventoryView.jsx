@@ -45,6 +45,17 @@ export default function InventoryView({ onOpenPurchase }) {
   const [newItemExpiryDate, setNewItemExpiryDate] = useState('');
   const [newItemLocation, setNewItemLocation] = useState('Warehouse Bay 1');
 
+  // Listen for hardware/browser back button modal close event
+  useEffect(() => {
+    const handleCloseModal = () => {
+      setShowNewItemModal(false);
+      setAdjustingItem(null);
+      setDetailsItem(null);
+    };
+    window.addEventListener('close-active-modal', handleCloseModal);
+    return () => window.removeEventListener('close-active-modal', handleCloseModal);
+  }, []);
+
   const categories = [
     'All',
     'Feed',
@@ -540,6 +551,7 @@ export default function InventoryView({ onOpenPurchase }) {
               </div>
 
               <div
+                className="modal-actions"
                 style={{
                   display: 'flex',
                   justifyContent: 'flex-end',
@@ -551,10 +563,11 @@ export default function InventoryView({ onOpenPurchase }) {
                   type="button"
                   className="btn btn-secondary"
                   onClick={() => setAdjustingItem(null)}
+                  style={{ flexShrink: 0, minWidth: '90px', whiteSpace: 'nowrap' }}
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
+                <button type="submit" className="btn btn-primary" style={{ minWidth: 0, textAlign: 'center' }}>
                   Save Adjustment
                 </button>
               </div>
@@ -744,6 +757,7 @@ export default function InventoryView({ onOpenPurchase }) {
               )}
 
               <div
+                className="modal-actions"
                 style={{
                   display: 'flex',
                   justifyContent: 'flex-end',
@@ -755,10 +769,11 @@ export default function InventoryView({ onOpenPurchase }) {
                   type="button"
                   className="btn btn-secondary"
                   onClick={() => setShowNewItemModal(false)}
+                  style={{ flexShrink: 0, minWidth: '90px', whiteSpace: 'nowrap' }}
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
+                <button type="submit" className="btn btn-primary" style={{ minWidth: 0, textAlign: 'center' }}>
                   Create Item
                 </button>
               </div>

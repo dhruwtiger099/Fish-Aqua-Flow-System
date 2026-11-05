@@ -1375,25 +1375,28 @@ h6 {
 
 @media (max-width: 767px) {
   .modal-overlay {
-    padding: 24px 12px !important;
-    align-items: center !important;
+    padding: 0 !important;
+    align-items: flex-end !important;
     justify-content: center !important;
-    background: rgba(3, 27, 44, 0.42) !important;
+    background: rgba(3, 27, 44, 0.65) !important;
     backdrop-filter: blur(14px) saturate(0.92) !important;
     -webkit-backdrop-filter: blur(14px) saturate(0.92) !important;
+    z-index: 99999 !important;
   }
   .modal-content {
-    width: min(680px, calc(100vw - 32px)) !important;
-    max-width: 680px !important;
-    max-height: calc(100dvh - 48px) !important;
+    width: 100% !important;
+    max-width: 640px !important;
+    max-height: calc(88dvh - env(safe-area-inset-top)) !important;
     min-height: 0 !important;
-    border-radius: 22px !important;
-    padding-top: 14px !important;
-    padding-bottom: 16px !important;
+    border-radius: 22px 22px 0 0 !important;
+    padding-top: 18px !important;
+    padding-left: max(16px, env(safe-area-inset-left)) !important;
+    padding-right: max(16px, env(safe-area-inset-right)) !important;
+    padding-bottom: calc(28px + env(safe-area-inset-bottom)) !important;
     box-shadow:
-      0 24px 70px rgba(3, 27, 44, 0.28),
+      0 -8px 36px rgba(3, 27, 44, 0.38),
       0 2px 0 rgba(255, 255, 255, 0.9) inset !important;
-    animation: scaleInModal 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    animation: slideUpModal 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }
   .modal-content::after {
     display: none;
@@ -1404,6 +1407,51 @@ h6 {
   .modal-content .modal-actions,
   .modal-content form > div:last-child {
     gap: 10px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-content .modal-actions,
+  .modal-content form > div:last-child {
+    flex-direction: column-reverse !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  .modal-content .modal-actions .btn,
+  .modal-content form > div:last-child .btn {
+    width: 100% !important;
+    min-height: 46px !important;
+    justify-content: center !important;
+    text-align: center !important;
+    font-size: 0.92rem !important;
+  }
+}
+
+.modal-content .btn-secondary {
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+  min-width: 85px !important;
+}
+
+/* App footer copyright subtle ghost text effect */
+.app-footer-copyright {
+  padding: 12px 16px 20px;
+  text-align: center;
+  font-size: 0.67rem;
+  color: rgba(84, 113, 133, 0.48);
+  letter-spacing: 0.04em;
+  background: transparent;
+  user-select: none;
+}
+.app-footer-copyright strong {
+  font-weight: 600;
+  color: rgba(6, 59, 92, 0.62);
+}
+@media (max-width: 768px) {
+  .app-footer-copyright {
+    padding-bottom: 78px;
   }
 }
 @media (max-width: 640px) {

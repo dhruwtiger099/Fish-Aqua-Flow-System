@@ -338,6 +338,7 @@ export default function FeedingModal({ initialPond, onClose }) {
 
           {/* Actions */}
           <div
+            className="modal-actions"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -353,7 +354,12 @@ export default function FeedingModal({ initialPond, onClose }) {
                 {submitError}
               </span>
             )}
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onClose}
+              style={{ flexShrink: 0, minWidth: '90px', whiteSpace: 'nowrap' }}
+            >
               Cancel
             </button>
             <button
@@ -361,6 +367,7 @@ export default function FeedingModal({ initialPond, onClose }) {
               className="btn btn-primary"
               onClick={handleSubmit}
               disabled={isSubmitting}
+              style={{ minWidth: 0, textAlign: 'center' }}
             >
               {isSubmitting ? <DoubleRingLoader /> : <CheckCircle2 size={16} />}
               <span>{isSubmitting ? 'Saving...' : 'Log Feed & Deduct Inventory'}</span>

@@ -588,10 +588,18 @@ button {
   align-items: center !important;
   justify-content: center !important;
   padding: 16px !important;
-  z-index: 2000 !important;
+  z-index: 99999 !important;
   overflow-y: auto !important;
   box-sizing: border-box !important;
   animation: fadeInOverlay 0.2s ease-out;
+}
+
+/* Hide mobile bottom dock when any modal is open */
+body:has(.modal-overlay) .mobile-bottom-dock,
+body.modal-open .mobile-bottom-dock {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 .modal-content {
@@ -604,7 +612,7 @@ button {
   max-height: 90vh !important;
   overflow-y: auto !important;
   position: relative !important;
-  z-index: 2001 !important;
+  z-index: 100000 !important;
   box-sizing: border-box !important;
   animation: scaleInModal 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
@@ -687,12 +695,13 @@ button {
   .modal-overlay {
     padding: 0 !important;
     align-items: flex-end !important;
+    z-index: 99999 !important;
   }
 
   .modal-content {
     border-radius: 22px 22px 0 0 !important;
-    max-height: 90vh !important;
-    padding: 20px 16px !important;
+    max-height: calc(88dvh - env(safe-area-inset-top)) !important;
+    padding: 20px 16px calc(28px + env(safe-area-inset-bottom)) !important;
     box-shadow: 0 -8px 36px rgba(4, 36, 58, 0.4) !important;
     animation: slideUpModal 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }

@@ -50,7 +50,7 @@ export default function LoginView({ onLogin, onSignup }) {
 
   return (
     <main className="login-page">
-      <section className="login-intro" aria-labelledby="login-brand-title">
+      <section className="login-intro hide-on-mobile" aria-labelledby="login-brand-title">
         <div className="login-brand-mark">
           <Waves size={25} aria-hidden="true" />
         </div>

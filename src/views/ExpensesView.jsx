@@ -6,6 +6,13 @@ import DataLimitControl from '../components/DataLimitControl';
 export default function ExpensesView() {
   const { expenses, addExpense, masterData, limitData } = useFarm();
   const [showForm, setShowForm] = useState(false);
+
+  // Listen for hardware/browser back button modal close event
+  useEffect(() => {
+    const handleCloseModal = () => setShowForm(false);
+    window.addEventListener('close-active-modal', handleCloseModal);
+    return () => window.removeEventListener('close-active-modal', handleCloseModal);
+  }, []);
   const [form, setForm] = useState({
     date: new Date().toISOString().slice(0, 10),
     category: 'Pond Maintenance',
@@ -306,6 +313,7 @@ export default function ExpensesView() {
                 />
               </label>
               <div
+                className="modal-actions"
                 style={{
                   gridColumn: '1 / -1',
                   display: 'flex',
@@ -320,10 +328,11 @@ export default function ExpensesView() {
                   type="button"
                   className="btn btn-secondary"
                   onClick={() => setShowForm(false)}
+                  style={{ flexShrink: 0, minWidth: '90px', whiteSpace: 'nowrap' }}
                 >
                   Cancel
                 </button>
-                <button className="btn btn-primary" type="submit">
+                <button className="btn btn-primary" type="submit" style={{ minWidth: 0, textAlign: 'center' }}>
                   <Receipt size={15} /> Save Expense
                 </button>
               </div>

@@ -274,11 +274,12 @@ export default function PurchaseModal({ onClose }) {
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+            <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
               <button
                 type="button"
                 className="btn btn-secondary"
                 onClick={() => setShowConfirm(false)}
+                style={{ flexShrink: 0, minWidth: '100px', whiteSpace: 'nowrap' }}
               >
                 Back to Edit
               </button>
@@ -287,6 +288,7 @@ export default function PurchaseModal({ onClose }) {
                 className="btn btn-primary"
                 onClick={executePurchase}
                 disabled={isSubmitting}
+                style={{ minWidth: 0, textAlign: 'center' }}
               >
                 {isSubmitting ? <DoubleRingLoader /> : <CheckCircle2 size={16} />}
                 <span>{isSubmitting ? 'Saving...' : 'Confirm & Record Order'}</span>
@@ -666,6 +668,7 @@ export default function PurchaseModal({ onClose }) {
 
             {/* Actions */}
             <div
+              className="modal-actions"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -676,10 +679,15 @@ export default function PurchaseModal({ onClose }) {
                 borderTop: '1px solid rgba(8, 126, 164, 0.15)',
               }}
             >
-              <button type="button" className="btn btn-secondary" onClick={onClose}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={onClose}
+                style={{ flexShrink: 0, minWidth: '90px', whiteSpace: 'nowrap' }}
+              >
                 Cancel
               </button>
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" style={{ minWidth: 0, textAlign: 'center' }}>
                 <span>Review & Submit Order</span>
               </button>
             </div>

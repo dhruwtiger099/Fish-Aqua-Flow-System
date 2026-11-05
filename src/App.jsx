@@ -25,8 +25,14 @@ import SearchModal from './components/SearchModal';
 import { getSession, signIn, signUp } from './services/auth';
 
 export default function App() {
-  const { activeTab, selectedPondModal, setSelectedPondModal, syncState, setCurrentUser } =
-    useFarm();
+  const {
+    activeTab,
+    selectedPondModal,
+    setSelectedPondModal,
+    syncState,
+    setCurrentUser,
+    addToast,
+  } = useFarm();
   const [authenticated, setAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
 
@@ -36,6 +42,8 @@ export default function App() {
   const [showHarvestModal, setShowHarvestModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [modalTargetPond, setModalTargetPond] = useState(null);
+  const [hasActiveOverlay, setHasActiveOverlay] = useState(false);
+  const lastBackPressTimeRef = React.useRef(0);
 
   useEffect(() => {
     getSession()
@@ -146,17 +154,74 @@ export default function App() {
     showSearchModal
   );
 
-  // Lock background scroll when any modal is open
+  // Monitor any active modal in App state or child views
   useEffect(() => {
-    if (isAnyModalOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    const checkModal = () => {
+      const modalInDom = document.querySelector('.modal-overlay');
+      const isOpen = Boolean(modalInDom || isAnyModalOpen);
+      setHasActiveOverlay(isOpen);
+      if (isOpen) {
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+      }
+    };
+
+    checkModal();
+    const observer = new MutationObserver(checkModal);
+    observer.observe(document.body, { childList: true, subtree: true });
     return () => {
+      observer.disconnect();
+      document.body.classList.remove('modal-open');
       document.body.style.overflow = '';
     };
   }, [isAnyModalOpen]);
+
+  // Handle mobile hardware back button and browser back
+  useEffect(() => {
+    // Seed history stack so back button can be intercepted
+    window.history.replaceState({ appRoot: true }, '');
+    window.history.pushState({ appHome: true }, '');
+
+    const handlePopState = () => {
+      const modalInDom = document.querySelector('.modal-overlay');
+      const isModalActive = isAnyModalOpen || Boolean(modalInDom);
+
+      // 1. If any modal form is open, close it and stay in app
+      if (isModalActive) {
+        closeAllModals();
+        window.dispatchEvent(new CustomEvent('close-active-modal'));
+        window.history.pushState({ appHome: true }, '');
+        return;
+      }
+
+      // 2. If mobile sidebar navigation is open, close it and stay in app
+      if (sidebarOpen && window.innerWidth < 1024) {
+        setSidebarOpen(false);
+        window.history.pushState({ appHome: true }, '');
+        return;
+      }
+
+      // 3. User is on dashboard/main screen: require double back within 2.5s to exit
+      const now = Date.now();
+      const elapsed = now - lastBackPressTimeRef.current;
+
+      if (elapsed < 2500) {
+        // Double-tap detected: allow exit
+      } else {
+        lastBackPressTimeRef.current = now;
+        window.history.pushState({ appHome: true }, '');
+        if (addToast) {
+          addToast('Press back again to exit Aqua Flow', 'info');
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [isAnyModalOpen, sidebarOpen, addToast]);
 
   if (authLoading)
     return (
@@ -226,7 +291,7 @@ export default function App() {
           transition: 'padding-left 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
           paddingLeft: sidebarOpen && window.innerWidth >= 1024 ? '260px' : '0',
           position: 'relative',
-          zIndex: 2,
+          zIndex: 'auto',
           width: '100%',
           maxWidth: '100%',
           overflowX: 'hidden',
@@ -249,32 +314,18 @@ export default function App() {
         {/* View Body with bottom safe padding for mobile bottom bar */}
         <main className="main-content-area">{renderActiveView()}</main>
 
-        {/* Ocean Glass Footer (Desktop) */}
-        <footer
-          className="hide-on-mobile"
-          style={{
-            padding: '16px 20px',
-            textAlign: 'center',
-            fontSize: '0.78rem',
-            color: '#547185',
-            borderTop: '1px solid rgba(8, 126, 164, 0.12)',
-            background: 'rgba(255, 255, 255, 0.5)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-          }}
-        >
-          <div
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-          >
-            <span>
-              Copyright © 2026 <strong>Bhupendra Dhruw</strong>. All Rights Reserved.
-            </span>
-          </div>
+        {/* Ghost styled subtle copyright footer */}
+        <footer className="app-footer-copyright">
+          <span>
+            Copyright © 2026 <strong>Bhupendra Dhruw</strong>. All Rights Reserved.
+          </span>
         </footer>
       </div>
 
-      {/* Mobile Bottom Navigation Dock */}
-      <MobileBottomNav onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
+      {/* Mobile Bottom Navigation Dock (Hidden whenever any modal is open) */}
+      {!hasActiveOverlay && (
+        <MobileBottomNav onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
+      )}
 
       {/* Modals with exclusive rendering & solid backdrop */}
       {selectedPondModal && (

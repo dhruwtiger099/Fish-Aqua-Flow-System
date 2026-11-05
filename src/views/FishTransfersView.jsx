@@ -24,6 +24,16 @@ export default function FishTransfersView() {
   const [tab, setTab] = useState('nursery');
   const [showNew, setShowNew] = useState(false);
   const [shiftCycle, setShiftCycle] = useState(null);
+
+  // Listen for hardware/browser back button modal close event
+  useEffect(() => {
+    const handleCloseModal = () => {
+      setShowNew(false);
+      setShiftCycle(null);
+    };
+    window.addEventListener('close-active-modal', handleCloseModal);
+    return () => window.removeEventListener('close-active-modal', handleCloseModal);
+  }, []);
   const [shiftForm, setShiftForm] = useState({
     date: today(),
     totalWeight: '',
@@ -551,10 +561,15 @@ function ModalHeader({ title, close }) {
 function ModalActions({ cancel, submit }) {
   return (
     <div className="modal-actions">
-      <button className="btn btn-secondary" type="button" onClick={cancel}>
+      <button
+        className="btn btn-secondary"
+        type="button"
+        onClick={cancel}
+        style={{ flexShrink: 0, minWidth: '90px', whiteSpace: 'nowrap' }}
+      >
         Cancel
       </button>
-      <button className="btn btn-primary" type="submit">
+      <button className="btn btn-primary" type="submit" style={{ minWidth: 0, textAlign: 'center' }}>
         <CheckCircle2 size={16} /> {submit}
       </button>
     </div>
