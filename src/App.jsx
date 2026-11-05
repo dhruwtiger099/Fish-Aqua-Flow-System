@@ -317,7 +317,7 @@ export default function App() {
         {/* Ghost styled subtle copyright footer */}
         <footer className="app-footer-copyright">
           <span>
-            Copyright © 2026 <strong>Bhupendra Dhruw</strong>. All Rights Reserved.
+            Copyright © 2026 Bhupendra Dhruw. All Rights Reserved.
           </span>
         </footer>
       </div>
