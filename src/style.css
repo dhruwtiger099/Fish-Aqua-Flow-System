@@ -1613,11 +1613,51 @@ button,
 }
 .mobile-record-card {
   min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
   overflow-wrap: anywhere;
 }
 .mobile-record-card > * {
   min-width: 0;
   max-width: 100%;
+}
+.mobile-record-card .btn,
+.mobile-record-card .btn-outline,
+.mobile-record-card button.btn-sm {
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+  min-width: 65px !important;
+  text-align: center !important;
+}
+
+/* Inventory KPI Grid - Mobile Model Flexible Interface */
+.inventory-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 10px !important;
+  width: 100%;
+}
+@media (max-width: 600px) {
+  .inventory-kpi-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+  }
+}
+@media (max-width: 440px) {
+  .inventory-kpi-grid {
+    gap: 6px !important;
+  }
+  .inventory-kpi-card {
+    padding: 10px 6px !important;
+    border-radius: 12px !important;
+  }
+  .inventory-kpi-title {
+    font-size: 0.68rem !important;
+  }
+  .inventory-kpi-value {
+    font-size: 1.15rem !important;
+  }
 }
 @media (max-width: 767px) {
   .modal-content .modal-header-row,

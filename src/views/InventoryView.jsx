@@ -152,51 +152,45 @@ export default function InventoryView({ onOpenPurchase }) {
         </div>
       </div>
 
-      {/* KPI Cards: responsive grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: '12px',
-        }}
-      >
-        <div className="glass-surface water-buoyant" style={{ padding: '14px' }}>
-          <div style={{ fontSize: '0.78rem', color: '#547185', fontWeight: 600 }}>
-            Total Inventory Asset
+      {/* KPI Cards: mobile-flexible responsive grid */}
+      <div className="inventory-kpi-grid">
+        <div className="glass-surface water-buoyant inventory-kpi-card" style={{ padding: '12px 10px' }}>
+          <div className="inventory-kpi-title" style={{ fontSize: '0.74rem', color: '#547185', fontWeight: 600 }}>
+            Total Asset
           </div>
-          <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#063B5C', marginTop: '3px' }}>
+          <div className="inventory-kpi-value" style={{ fontSize: '1.25rem', fontWeight: 800, color: '#063B5C', marginTop: '3px', whiteSpace: 'nowrap' }}>
             ₹{Math.round(totalValue).toLocaleString('en-IN')}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#087EA4', marginTop: '2px' }}>
+          <div style={{ fontSize: '0.68rem', color: '#087EA4', marginTop: '2px', whiteSpace: 'nowrap' }}>
             {inventory.length} distinct SKUs
           </div>
         </div>
 
-        <div className="glass-surface water-buoyant" style={{ padding: '14px' }}>
-          <div style={{ fontSize: '0.78rem', color: '#547185', fontWeight: 600 }}>
-            Feed Pellets in Silos
+        <div className="glass-surface water-buoyant inventory-kpi-card" style={{ padding: '12px 10px' }}>
+          <div className="inventory-kpi-title" style={{ fontSize: '0.74rem', color: '#547185', fontWeight: 600 }}>
+            Feed in Silos
           </div>
-          <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#087EA4', marginTop: '3px' }}>
+          <div className="inventory-kpi-value" style={{ fontSize: '1.25rem', fontWeight: 800, color: '#087EA4', marginTop: '3px', whiteSpace: 'nowrap' }}>
             {inventory
               .filter((i) => i.category === 'Feed')
               .reduce((sum, i) => sum + i.stockQty, 0)
               .toLocaleString()}{' '}
-            <span style={{ fontSize: '0.85rem' }}>kg</span>
+            <span style={{ fontSize: '0.78rem' }}>kg</span>
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#16A085', marginTop: '2px' }}>
-            ~14 days buffer supply
+          <div style={{ fontSize: '0.68rem', color: '#16A085', marginTop: '2px', whiteSpace: 'nowrap' }}>
+            ~14d buffer
           </div>
         </div>
 
-        <div className="glass-surface water-buoyant" style={{ padding: '14px' }}>
-          <div style={{ fontSize: '0.78rem', color: '#547185', fontWeight: 600 }}>
+        <div className="glass-surface water-buoyant inventory-kpi-card" style={{ padding: '12px 10px' }}>
+          <div className="inventory-kpi-title" style={{ fontSize: '0.74rem', color: '#547185', fontWeight: 600 }}>
             Reorder Alerts
           </div>
-          <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#E9A23B', marginTop: '3px' }}>
+          <div className="inventory-kpi-value" style={{ fontSize: '1.25rem', fontWeight: 800, color: '#E9A23B', marginTop: '3px', whiteSpace: 'nowrap' }}>
             {inventory.filter((i) => i.stockQty <= i.minThreshold).length}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#547185', marginTop: '2px' }}>
-            Requires replenishment
+          <div style={{ fontSize: '0.68rem', color: '#547185', marginTop: '2px', whiteSpace: 'nowrap' }}>
+            Low stock alerts
           </div>
         </div>
       </div>
@@ -256,10 +250,20 @@ export default function InventoryView({ onOpenPurchase }) {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'flex-start',
+                  gap: '8px',
                 }}
               >
-                <div>
-                  <div style={{ fontWeight: 700, color: '#063B5C', fontSize: '0.94rem' }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      color: '#063B5C',
+                      fontSize: '0.94rem',
+                      lineHeight: 1.3,
+                      overflowWrap: 'break-word',
+                      wordBreak: 'break-word',
+                    }}
+                  >
                     <button
                       type="button"
                       onClick={() => {
@@ -275,25 +279,28 @@ export default function InventoryView({ onOpenPurchase }) {
                         cursor: 'pointer',
                         textAlign: 'left',
                         textDecoration: 'underline',
+                        lineHeight: 'inherit',
+                        maxWidth: '100%',
                       }}
                     >
                       {item.name}
                     </button>
                   </div>
-                  <div style={{ fontSize: '0.74rem', color: '#547185', marginTop: '1px' }}>
+                  <div style={{ fontSize: '0.74rem', color: '#547185', marginTop: '2px' }}>
                     {item.sku} • {item.location}
                   </div>
                 </div>
-                <span className="badge badge-ocean" style={{ fontSize: '0.7rem' }}>
+                <span className="badge badge-ocean" style={{ fontSize: '0.7rem', flexShrink: 0 }}>
                   {item.category}
                 </span>
               </div>
 
               <div
                 style={{
-                  display: 'flex',
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '8px',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
                   background: 'rgba(8, 126, 164, 0.06)',
                   borderRadius: '10px',
                   padding: '8px 12px',
@@ -305,8 +312,9 @@ export default function InventoryView({ onOpenPurchase }) {
                   <div
                     style={{
                       fontWeight: 800,
-                      fontSize: '1.1rem',
+                      fontSize: '1.05rem',
                       color: isLow ? '#E05260' : '#063B5C',
+                      whiteSpace: 'nowrap',
                     }}
                   >
                     {item.stockQty.toLocaleString()} {item.unit}
@@ -315,7 +323,14 @@ export default function InventoryView({ onOpenPurchase }) {
 
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: '0.72rem', color: '#547185' }}>Asset Value</div>
-                  <div style={{ fontWeight: 700, color: '#087EA4', fontSize: '0.96rem' }}>
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      color: '#087EA4',
+                      fontSize: '0.96rem',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     ₹{Number(totalCost).toLocaleString('en-IN')}
                   </div>
                 </div>
@@ -326,21 +341,47 @@ export default function InventoryView({ onOpenPurchase }) {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  marginTop: '4px',
-                  fontSize: '0.78rem',
+                  gap: '8px',
+                  marginTop: '6px',
+                  paddingTop: '6px',
+                  borderTop: '1px solid rgba(8, 126, 164, 0.1)',
+                  fontSize: '0.76rem',
                   color: '#547185',
                 }}
               >
-                <div>
-                  Rate:{' '}
-                  <strong>
-                    ₹{item.costPerUnit.toFixed(2)}/{item.unit}
-                  </strong>{' '}
-                  • Supplier: {item.supplier}
+                <div style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
+                  <div>
+                    Rate: <strong style={{ color: '#063B5C' }}>₹{item.costPerUnit.toFixed(2)}/{item.unit}</strong>
+                  </div>
+                  {item.supplier && (
+                    <div
+                      style={{
+                        fontSize: '0.72rem',
+                        color: '#64748B',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        marginTop: '1px',
+                      }}
+                      title={item.supplier}
+                    >
+                      Supplier: {item.supplier}
+                    </div>
+                  )}
                 </div>
                 <button
                   className="btn btn-sm btn-outline"
-                  style={{ padding: '3px 10px', minHeight: '28px', fontSize: '0.76rem' }}
+                  style={{
+                    padding: '4px 12px',
+                    minHeight: '28px',
+                    fontSize: '0.76rem',
+                    fontWeight: 600,
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                    minWidth: '65px',
+                    textAlign: 'center',
+                    borderRadius: '8px',
+                  }}
                   onClick={() => {
                     setAdjustingItem(item);
                     setAdjustAmount(0);
