@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useFarm } from '../context/FarmContext';
 import { Plus, Receipt, X, WalletCards } from 'lucide-react';
 import DataLimitControl from '../components/DataLimitControl';
