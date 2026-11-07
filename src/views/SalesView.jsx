@@ -3,18 +3,37 @@ import { useFarm } from '../context/FarmContext';
 import {
   DollarSign,
   Scale,
-  Plus,
   Search,
   TrendingUp,
   UserCheck,
   CheckCircle2,
   Calendar,
+  CreditCard,
+  UploadCloud,
+  X,
 } from 'lucide-react';
 import DataLimitControl from '../components/DataLimitControl';
+import PremiumSelect from '../components/PremiumSelect';
 
-export default function SalesView({ onOpenHarvest }) {
+export default function SalesView() {
   const { sales, ponds, limitData } = useFarm();
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('harvest');
+  const [payments, setPayments] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('aquaflow_sale_payments') || '[]');
+    } catch {
+      return [];
+    }
+  });
+  const [paymentSale, setPaymentSale] = useState(null);
+  const [paymentForm, setPaymentForm] = useState({
+    method: 'Cash',
+    amount: '',
+    date: new Date().toISOString().slice(0, 10),
+    reference: '',
+    attachment: null,
+  });
 
   const filteredSales = sales.filter(
     (s) =>
@@ -27,6 +46,61 @@ export default function SalesView({ onOpenHarvest }) {
   const totalGrossRevenue = sales.reduce((sum, s) => sum + (Number(s.grossRevenue) || 0), 0);
   const totalNetProfit = sales.reduce((sum, s) => sum + (Number(s.netProfit) || 0), 0);
   const totalWeightHarvested = sales.reduce((sum, s) => sum + (Number(s.weightKg) || 0), 0);
+
+  const openPaymentForm = (sale) => {
+    setPaymentSale(sale);
+    setPaymentForm({
+      method: 'Cash',
+      amount: String(sale.grossRevenue || 0),
+      date: new Date().toISOString().slice(0, 10),
+      reference: '',
+      attachment: null,
+    });
+  };
+
+  const savePayment = async (event) => {
+    event.preventDefault();
+    if (!paymentSale) return;
+    const attachmentDataUrl = paymentForm.attachment
+      ? await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ''));
+          reader.onerror = () => resolve('');
+          reader.readAsDataURL(paymentForm.attachment);
+        })
+      : '';
+    const payment = {
+      id: `payment-${Date.now()}`,
+      saleId: paymentSale.id,
+      buyerName: paymentSale.buyerName,
+      method: paymentForm.method,
+      amount: Number(paymentForm.amount) || 0,
+      date: paymentForm.date,
+      reference: paymentForm.reference.trim(),
+      attachmentName: paymentForm.attachment?.name || '',
+      attachmentDataUrl,
+      status: 'Recorded',
+    };
+    const nextPayments = [payment, ...payments];
+    setPayments(nextPayments);
+    localStorage.setItem('aquaflow_sale_payments', JSON.stringify(nextPayments));
+    setPaymentSale(null);
+  };
+
+  const openPaymentAttachment = (payment) => {
+    if (!payment.attachmentDataUrl) return;
+    try {
+      const [header, base64] = payment.attachmentDataUrl.split(',');
+      const mime = header.match(/data:(.*?);base64/)?.[1] || 'application/octet-stream';
+      const binary = atob(base64);
+      const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+      const fileUrl = URL.createObjectURL(new Blob([bytes], { type: mime }));
+      window.open(fileUrl, '_blank', 'noopener,noreferrer');
+      window.setTimeout(() => URL.revokeObjectURL(fileUrl), 60000);
+    } catch {
+      window.open(payment.attachmentDataUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -45,16 +119,27 @@ export default function SalesView({ onOpenHarvest }) {
             Harvesting, Grading & Market Sales
           </h1>
           <p style={{ color: '#547185', fontSize: '0.84rem' }}>
-            Harvest records, market sales, distributor invoices & profit margins
+
           </p>
         </div>
 
-        <div className="mobile-btn-group">
-          <button onClick={onOpenHarvest} className="btn btn-primary" style={{ width: '100%' }}>
-            <Plus size={15} />
-            <span>Record Harvest / Sale</span>
-          </button>
-        </div>
+      </div>
+
+      <div className="sales-tabs" role="tablist" aria-label="Sales sections">
+        <button
+          className={activeTab === 'harvest' ? 'sales-tab sales-tab--active' : 'sales-tab'}
+          onClick={() => setActiveTab('harvest')}
+          type="button"
+        >
+          <Scale size={16} /> Harvest Entries
+        </button>
+        <button
+          className={activeTab === 'payments' ? 'sales-tab sales-tab--active' : 'sales-tab'}
+          onClick={() => setActiveTab('payments')}
+          type="button"
+        >
+          <CreditCard size={16} /> Payments
+        </button>
       </div>
 
       {/* KPI Cards */}
@@ -110,6 +195,8 @@ export default function SalesView({ onOpenHarvest }) {
         </div>
       </div>
 
+      {activeTab === 'harvest' && (
+        <>
       {/* Search Input */}
       <div
         className="glass-surface"
@@ -147,9 +234,8 @@ export default function SalesView({ onOpenHarvest }) {
                 </div>
               </div>
               <span
-                className={`badge ${
-                  sale.paymentStatus === 'Paid' ? 'badge-active' : 'badge-warning'
-                }`}
+                className={`badge ${sale.paymentStatus === 'Paid' ? 'badge-active' : 'badge-warning'
+                  }`}
                 style={{ fontSize: '0.7rem' }}
               >
                 {sale.paymentStatus}
@@ -207,7 +293,9 @@ export default function SalesView({ onOpenHarvest }) {
             </tr>
           </thead>
           <tbody>
-            {visibleSales.map((sale) => (
+            {visibleSales.map((sale) => {
+              const salePayment = payments.find((payment) => payment.saleId === sale.id);
+              return (
               <tr key={sale.id}>
                 <td>
                   <div style={{ fontWeight: 700, color: '#063B5C' }}>{sale.id}</div>
@@ -215,7 +303,7 @@ export default function SalesView({ onOpenHarvest }) {
                 </td>
                 <td>
                   <span className="badge badge-ocean" style={{ fontSize: '0.74rem' }}>
-                    {sale.pondName || 'Pond'}
+                    {sale.cycleName || sale.batchNumber || sale.pondName || 'Pond'}
                   </span>
                 </td>
                 <td>
@@ -244,16 +332,24 @@ export default function SalesView({ onOpenHarvest }) {
                   <div style={{ fontWeight: 600, color: '#063B5C' }}>{sale.buyerName}</div>
                 </td>
                 <td>
-                  <span
-                    className={`badge ${
-                      sale.paymentStatus === 'Paid' ? 'badge-active' : 'badge-warning'
-                    }`}
-                  >
-                    {sale.paymentStatus}
-                  </span>
+                  {salePayment ? (
+                    <div className="payment-cell-button payment-cell-button--paid">
+                      <CreditCard size={14} />
+                      <strong>Completed</strong>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="payment-cell-button"
+                      onClick={() => openPaymentForm(sale)}
+                    >
+                      <CreditCard size={14} /> Add payment
+                    </button>
+                  )}
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -261,6 +357,115 @@ export default function SalesView({ onOpenHarvest }) {
         <span>Sales records</span>
         <DataLimitControl total={filteredSales.length} />
       </div>
+        </>
+      )}
+
+      {activeTab === 'payments' && (
+        <div className="table-container payment-records-panel">
+          <div className="payment-panel-heading">
+            <div>
+              <h2>Buyer Payments</h2>
+              <p> </p>
+            </div>
+            <CreditCard size={22} color="#087EA4" />
+          </div>
+          <table className="fms-table">
+            <thead>
+              <tr>
+                <th>Sale ID</th>
+                <th>Cycle</th>
+                <th>Buyer</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Date</th>
+                <th>Reference</th>
+                <th>Attachment</th>
+              </tr>
+            </thead>
+            <tbody>
+              {payments.map((payment) => {
+                const paymentSale = sales.find((sale) => sale.id === payment.saleId);
+                return (
+                <tr key={payment.id}>
+                  <td><strong>{payment.saleId}</strong></td>
+                  <td>{paymentSale?.cycleName || paymentSale?.batchNumber || paymentSale?.pondName || '—'}</td>
+                  <td>{payment.buyerName || '—'}</td>
+                  <td style={{ fontWeight: 800, color: '#087EA4' }}>₹{payment.amount.toLocaleString('en-IN')}</td>
+                  <td><span className="badge badge-ocean">{payment.method}</span></td>
+                  <td>{payment.date}</td>
+                  <td>{payment.reference || '—'}</td>
+                  <td>
+                      {payment.attachmentDataUrl ? (
+                        <button
+                          type="button"
+                        className="payment-file-link"
+                          onClick={() => openPaymentAttachment(payment)}
+                      >
+                        {payment.attachmentName?.toLowerCase().endsWith('.pdf') ? 'Open PDF' : 'Open file'}
+                        </button>
+                    ) : (
+                      payment.attachmentName || '—'
+                    )}
+                  </td>
+                </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {!payments.length && <div className="payment-empty-state">No payments recorded yet.</div>}
+        </div>
+      )}
+
+      {paymentSale && (
+        <div className="modal-overlay" onClick={() => setPaymentSale(null)}>
+          <div className="modal-content payment-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="payment-modal-header">
+              <div>
+                <div className="eyebrow">PAYMENT REGISTER</div>
+                <h2>Record Buyer Payment</h2>
+                <p>{paymentSale.id} · {paymentSale.buyerName || 'Buyer'}</p>
+              </div>
+              <button type="button" className="btn-icon" onClick={() => setPaymentSale(null)} aria-label="Close payment form">
+                <X size={18} />
+              </button>
+            </div>
+            <form className="payment-form" onSubmit={savePayment}>
+              <label className="form-label">
+                Payment method
+                <PremiumSelect
+                  value={paymentForm.method}
+                  onChange={(event) => setPaymentForm({ ...paymentForm, method: event.target.value })}
+                  options={['Cash', 'Cheque', 'UPI', 'NEFT / RTGS', 'Bank Transfer', 'NFT', 'Other'].map((method) => ({ value: method, label: method }))}
+                />
+              </label>
+              <label className="form-label">
+                Amount received (₹)
+                <input className="form-input" type="number" min="0" step="0.01" value={paymentForm.amount} onChange={(event) => setPaymentForm({ ...paymentForm, amount: event.target.value })} required />
+              </label>
+              <label className="form-label">
+                Payment date
+                <input className="form-input" type="date" value={paymentForm.date} onChange={(event) => setPaymentForm({ ...paymentForm, date: event.target.value })} required />
+              </label>
+              <label className="form-label">
+                Cheque / transaction reference
+                <input className="form-input" value={paymentForm.reference} onChange={(event) => setPaymentForm({ ...paymentForm, reference: event.target.value })} placeholder="e.g. UTR, cheque number" />
+              </label>
+              <label className="form-label payment-upload-field">
+                <span>Payment proof attachment</span>
+                <span className="payment-upload-box">
+                  <UploadCloud size={18} />
+                  <span>{paymentForm.attachment?.name || 'Choose receipt, cheque scan or proof'}</span>
+                  <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={(event) => setPaymentForm({ ...paymentForm, attachment: event.target.files?.[0] || null })} />
+                </span>
+              </label>
+              <div className="payment-form-actions">
+                <button type="button" className="btn btn-secondary" onClick={() => setPaymentSale(null)}>Cancel</button>
+                <button type="submit" className="btn btn-primary"><CheckCircle2 size={16} /> Save payment</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

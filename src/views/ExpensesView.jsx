@@ -1,11 +1,20 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useFarm } from '../context/FarmContext';
-import { Plus, Receipt, X, WalletCards } from 'lucide-react';
+import { Plus, Receipt, X, WalletCards, CalendarDays, Tags, MapPinned, CircleDollarSign, FileText, ChevronDown } from 'lucide-react';
 import DataLimitControl from '../components/DataLimitControl';
+import PremiumSelect from '../components/PremiumSelect';
 
 export default function ExpensesView() {
   const { expenses, addExpense, masterData, limitData } = useFarm();
   const [showForm, setShowForm] = useState(false);
+  const [cycleOpen, setCycleOpen] = useState(false);
+  const [cycles, setCycles] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('aquaflow_fish_cycles') || '[]');
+    } catch {
+      return [];
+    }
+  });
 
   // Listen for hardware/browser back button modal close event
   useEffect(() => {
@@ -13,9 +22,23 @@ export default function ExpensesView() {
     window.addEventListener('close-active-modal', handleCloseModal);
     return () => window.removeEventListener('close-active-modal', handleCloseModal);
   }, []);
+  useEffect(() => {
+    const refreshCycles = () => {
+      try {
+        setCycles(JSON.parse(localStorage.getItem('aquaflow_fish_cycles') || '[]'));
+      } catch {
+        setCycles([]);
+      }
+    };
+    window.addEventListener('aquaflow-cycle-updated', refreshCycles);
+    return () => window.removeEventListener('aquaflow-cycle-updated', refreshCycles);
+  }, []);
   const [form, setForm] = useState({
     date: new Date().toISOString().slice(0, 10),
     category: 'Pond Maintenance',
+    cycle: '',
+    cycleName: '',
+    fishName: '',
     pond: 'All Farm',
     amount: '',
     note: '',
@@ -27,16 +50,17 @@ export default function ExpensesView() {
   const expenseTypes = masterData.expenseType.length
     ? masterData.expenseType
     : [
-        'Pond Maintenance',
-        'Water Treatment',
-        'Supplement / Medicine',
-        'Labour',
-        'Electricity / Pump',
-        'Other',
-      ];
+      'Pond Maintenance',
+      'Water Treatment',
+      'Supplement / Medicine',
+      'Labour',
+      'Electricity / Pump',
+      'Other',
+    ];
   const pondAreas = masterData.pondArea.length
     ? masterData.pondArea
     : ['All Farm', 'Nursery', 'Pond A', 'Pond B'];
+  const selectedCycle = cycles.find((cycle) => cycle.id === form.cycle);
   const visibleExpenses = limitData(expenses);
   const submit = (event) => {
     event.preventDefault();
@@ -76,6 +100,7 @@ export default function ExpensesView() {
               <tr>
                 <th>Date</th>
                 <th>Type</th>
+                <th>Cycle</th>
                 <th>Pond</th>
                 <th>Notes</th>
                 <th>Amount</th>
@@ -89,6 +114,7 @@ export default function ExpensesView() {
                     <td>
                       <Receipt size={14} /> {item.category}
                     </td>
+                    <td>{item.cycleName || item.cycle || '—'}</td>
                     <td>{item.pond}</td>
                     <td>{item.note || '—'}</td>
                     <td style={{ fontWeight: 800, color: '#E05260' }}>
@@ -98,7 +124,7 @@ export default function ExpensesView() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" style={{ textAlign: 'center', color: '#547185' }}>
+                    <td colSpan="6" style={{ textAlign: 'center', color: '#547185' }}>
                     No expense records available.
                   </td>
                 </tr>
@@ -183,7 +209,7 @@ export default function ExpensesView() {
                     Add Maintenance Expense
                   </h2>
                   <p style={{ color: '#547185', fontSize: '.8rem', marginTop: 3 }}>
-                    Record the expense for inclusion in profitability reports.
+
                   </p>
                 </div>
               </div>
@@ -221,7 +247,7 @@ export default function ExpensesView() {
                   textAlign: 'left',
                 }}
               >
-                Date
+                <span><span className="form-field-icon"><CalendarDays size={14} /></span>Date</span>
                 <input
                   className="form-input"
                   type="date"
@@ -240,16 +266,78 @@ export default function ExpensesView() {
                   textAlign: 'left',
                 }}
               >
-                Expense type
-                <select
-                  className="form-select"
+                <span><span className="form-field-icon"><Receipt size={14} /></span>Cycle</span>
+                <div className="premium-select-wrap">
+                  <button
+                    type="button"
+                    className="premium-select-trigger"
+                    aria-haspopup="listbox"
+                    aria-expanded={cycleOpen}
+                    onClick={() => setCycleOpen((open) => !open)}
+                  >
+                    <span>{form.cycle ? `${form.cycle}${selectedCycle?.fishName ? ` — ${selectedCycle.fishName}` : ''}` : 'Farm-wide / No cycle'}</span>
+                    <ChevronDown size={17} aria-hidden="true" />
+                  </button>
+                  {cycleOpen && (
+                    <div className="premium-select-menu" role="listbox">
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={!form.cycle}
+                        className={!form.cycle ? 'is-selected' : ''}
+                        onClick={() => {
+                          setForm({ ...form, cycle: '', cycleName: '', fishName: '' });
+                          setCycleOpen(false);
+                        }}
+                      >
+                        Farm-wide / No cycle
+                      </button>
+                      {cycles.map((cycle) => (
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={form.cycle === cycle.id}
+                          className={form.cycle === cycle.id ? 'is-selected' : ''}
+                          key={cycle.id}
+                          onClick={() => {
+                            const nextCycle = cycle;
+                            setForm({
+                              ...form,
+                              cycle: nextCycle.id,
+                              cycleName: nextCycle.id,
+                              fishName: nextCycle.fishName || nextCycle.species || '',
+                            });
+                            setCycleOpen(false);
+                          }}
+                        >
+                          {cycle.id} {cycle.fishName ? `— ${cycle.fishName}` : ''}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {selectedCycle?.fishName && (
+                  <small style={{ color: '#547185', fontSize: '.72rem' }}>
+                    Fish: {selectedCycle.fishName}
+                  </small>
+                )}
+              </label>
+              <label
+                className="form-label"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'stretch',
+                  gap: 7,
+                  textAlign: 'left',
+                }}
+              >
+                <span><span className="form-field-icon"><Tags size={14} /></span>Expense type</span>
+                <PremiumSelect
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
-                >
-                  {expenseTypes.map((value) => (
-                    <option key={value}>{value}</option>
-                  ))}
-                </select>
+                  options={expenseTypes.map((value) => ({ value, label: value }))}
+                />
               </label>
               <label
                 className="form-label"
@@ -261,16 +349,12 @@ export default function ExpensesView() {
                   textAlign: 'left',
                 }}
               >
-                Pond / Area
-                <select
-                  className="form-select"
+                <span><span className="form-field-icon"><MapPinned size={14} /></span>Pond / Area</span>
+                <PremiumSelect
                   value={form.pond}
                   onChange={(e) => setForm({ ...form, pond: e.target.value })}
-                >
-                  {pondAreas.map((value) => (
-                    <option key={value}>{value}</option>
-                  ))}
-                </select>
+                  options={pondAreas.map((value) => ({ value, label: value }))}
+                />
               </label>
               <label
                 className="form-label"
@@ -282,7 +366,7 @@ export default function ExpensesView() {
                   textAlign: 'left',
                 }}
               >
-                Amount (₹)
+                <span><span className="form-field-icon"><CircleDollarSign size={14} /></span>Amount (₹)</span>
                 <input
                   className="form-input"
                   type="number"
@@ -304,7 +388,7 @@ export default function ExpensesView() {
                   textAlign: 'left',
                 }}
               >
-                Notes
+                <span><span className="form-field-icon"><FileText size={14} /></span>Notes</span>
                 <input
                   className="form-input"
                   value={form.note}

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useFarm } from '../context/FarmContext';
-import { Menu, Search, Bell, Waves, CircleUserRound, Download } from 'lucide-react';
+import { Menu, Search, Bell, CircleUserRound, Download, LogOut } from 'lucide-react';
 
-export default function Navbar({ onToggleSidebar, onOpenSearchModal }) {
+export default function Navbar({ onToggleSidebar, onOpenSearchModal, onLogout }) {
   const { currentUser, ponds } = useFarm();
   const [showAlertsMenu, setShowAlertsMenu] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
     const isApp =
@@ -91,22 +92,6 @@ export default function Navbar({ onToggleSidebar, onOpenSearchModal }) {
           className="app-navbar-brand"
           style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}
         >
-          <div
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '10px',
-              background: '#0B7285',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 3px 10px rgba(8, 126, 164, 0.3)',
-              color: '#FFFFFF',
-              flexShrink: 0,
-            }}
-          >
-            <Waves size={18} />
-          </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', minWidth: 0 }}>
             <span
               className="app-navbar-title"
@@ -120,16 +105,6 @@ export default function Navbar({ onToggleSidebar, onOpenSearchModal }) {
               }}
             >
               Aqua Flow System
-            </span>
-            <span
-              className="badge badge-aqua"
-              style={{
-                fontSize: '0.6rem',
-                padding: '1px 5px',
-                fontWeight: 800,
-              }}
-            >
-              PRO
             </span>
           </div>
         </div>
@@ -314,6 +289,7 @@ export default function Navbar({ onToggleSidebar, onOpenSearchModal }) {
           <button
             type="button"
             aria-label={`Signed in as ${currentUser.name}`}
+            onClick={() => setShowUserMenu((open) => !open)}
             style={{
               background: 'rgba(255, 255, 255, 0.9)',
               border: '1.5px solid rgba(8, 126, 164, 0.22)',
@@ -322,7 +298,7 @@ export default function Navbar({ onToggleSidebar, onOpenSearchModal }) {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              cursor: 'default',
+              cursor: 'pointer',
               height: '36px',
             }}
           >
@@ -344,6 +320,24 @@ export default function Navbar({ onToggleSidebar, onOpenSearchModal }) {
               Signed in
             </span>
           </button>
+          {showUserMenu && (
+            <div className="user-account-menu">
+              <div className="user-account-menu__identity">
+                <strong>{currentUser.name}</strong>
+                <span>{currentUser.role}</span>
+              </div>
+              <button
+                type="button"
+                className="user-account-menu__logout"
+                onClick={() => {
+                  setShowUserMenu(false);
+                  onLogout?.();
+                }}
+              >
+                <LogOut size={16} /> Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>

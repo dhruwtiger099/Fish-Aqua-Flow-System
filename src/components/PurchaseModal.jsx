@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useFarm } from '../context/FarmContext';
 import { uploadInvoiceAttachment } from '../services/googleSheets';
 import DoubleRingLoader from './DoubleRingLoader';
+import PremiumSelect from './PremiumSelect';
 import {
   X,
   ShoppingCart,
@@ -183,7 +184,7 @@ export default function PurchaseModal({ onClose }) {
             <div>
               <h2 style={{ fontSize: '1.35rem', color: '#063B5C' }}>Create Purchase Order</h2>
               <p style={{ fontSize: '0.82rem', color: '#547185' }}>
-                Stock in feeds, water treatments, equipment & nursery inventory
+
               </p>
             </div>
           </div>
@@ -301,8 +302,7 @@ export default function PurchaseModal({ onClose }) {
               <label className="form-label">
                 Purchase Type <span className="required-star">*</span>
               </label>
-              <select
-                className="form-select"
+              <PremiumSelect
                 value={purchaseType}
                 onChange={(e) => {
                   const next = e.target.value;
@@ -312,21 +312,11 @@ export default function PurchaseModal({ onClose }) {
                   setItemName('');
                   if (next === 'Fish Species') setUnit('Kg');
                 }}
-              >
-                {(masterData.category.length
+                options={(masterData.category.length
                   ? masterData.category
-                  : [
-                      'Feed',
-                      'Water Treatment',
-                      'Emergency Supplies',
-                      'Supplements',
-                      'Equipment',
-                      'Fish Species',
-                    ]
-                ).map((value) => (
-                  <option key={value}>{value}</option>
-                ))}
-              </select>
+                  : ['Feed', 'Water Treatment', 'Emergency Supplies', 'Supplements', 'Equipment', 'Fish Species']
+                ).map((value) => ({ value, label: value }))}
+              />
             </div>
             {purchaseType === 'Fish Species' && (
               <>
@@ -367,6 +357,17 @@ export default function PurchaseModal({ onClose }) {
                 {purchaseType === 'Fish Species' ? 'Fish Name / Species' : 'Item / Supply Name'}{' '}
                 <span className="required-star">*</span>
               </label>
+              <PremiumSelect
+                value={selectedItemId}
+                onChange={handleItemChange}
+                required
+                placeholder={purchaseType === 'Fish Species' ? 'Select fish species' : 'Select SKU & item name'}
+                options={[
+                  { value: '', label: purchaseType === 'Fish Species' ? 'Select fish species' : 'Select SKU & item name' },
+                  ...matchingItems.map((item) => ({ value: item.id, label: `${item.sku} — ${item.name}` })),
+                ]}
+              />
+              <div style={{ display: 'none' }}>
               {purchaseType === 'Fish Species' ? (
                 <select
                   className="form-select"
@@ -396,6 +397,7 @@ export default function PurchaseModal({ onClose }) {
                   ))}
                 </select>
               )}
+              </div>
               {purchaseType !== 'Fish Species' && matchingItems.length === 0 && (
                 <div className="form-hint">No inventory item found for this category.</div>
               )}
@@ -467,20 +469,12 @@ export default function PurchaseModal({ onClose }) {
                     style={{ flex: 1 }}
                   />
                   {purchaseType !== 'Fish Species' && (
-                    <select
-                      className="form-select"
+                    <PremiumSelect
                       value={unit}
                       onChange={(e) => setUnit(e.target.value)}
-                      style={{ width: '112px' }}
-                      aria-label="Quantity unit"
-                    >
-                      {(masterData.unit.length
-                        ? masterData.unit
-                        : ['Kg', 'Pcs', 'Bag', 'Packet', 'MT', 'Ltr']
-                      ).map((value) => (
-                        <option key={value}>{value}</option>
-                      ))}
-                    </select>
+                      className="purchase-unit-select"
+                      options={(masterData.unit.length ? masterData.unit : ['Kg', 'Pcs', 'Bag', 'Packet', 'MT', 'Ltr']).map((value) => ({ value, label: value }))}
+                    />
                   )}
                 </div>
                 <div className="form-hint">
@@ -529,14 +523,11 @@ export default function PurchaseModal({ onClose }) {
 
               <div className="form-group">
                 <label className="form-label">Shipping / Freight</label>
-                <select
-                  className="form-select"
+                <PremiumSelect
                   value={shippingMode}
                   onChange={(e) => setShippingMode(e.target.value)}
-                >
-                  <option value="Self">Self</option>
-                  <option value="Freight">Freight</option>
-                </select>
+                  options={[{ value: 'Self', label: 'Self' }, { value: 'Freight', label: 'Freight' }]}
+                />
                 {shippingMode === 'Freight' && (
                   <input
                     type="number"
@@ -552,15 +543,15 @@ export default function PurchaseModal({ onClose }) {
 
               <div className="form-group">
                 <label className="form-label">Delivery Status</label>
-                <select
-                  className="form-select"
+                <PremiumSelect
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
-                >
-                  <option value="Received">Received (Stock-In)</option>
-                  <option value="In Transit">In Transit</option>
-                  <option value="Ordered">Ordered (Pending)</option>
-                </select>
+                  options={[
+                    { value: 'Received', label: 'Received (Stock-In)' },
+                    { value: 'In Transit', label: 'In Transit' },
+                    { value: 'Ordered', label: 'Ordered (Pending)' },
+                  ]}
+                />
               </div>
             </div>
 
@@ -641,12 +632,12 @@ export default function PurchaseModal({ onClose }) {
               <label className="form-label">Invoice / Bill Attachment</label>
               <input
                 type="file"
-                className="form-input"
+                className="form-input upload-file-input"
                 accept=".pdf,.jpg,.jpeg,.png,.webp,.xls,.xlsx"
                 onChange={(e) => setInvoiceAttachment(e.target.files?.[0] || null)}
               />
               <div className="form-hint">
-                Attach a PDF, image or Excel invoice. Maximum recommended size: 10 MB.
+
               </div>
               {invoiceAttachment && (
                 <div className="form-hint" style={{ color: '#087EA4', fontWeight: 600 }}>

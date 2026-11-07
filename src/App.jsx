@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useFarm } from './context/FarmContext';
 import BackgroundWaves from './components/BackgroundWaves';
-import WaterRipple from './components/WaterRipple';
 import Navbar from './components/Navbar';
+import AppSkeleton from './components/AppSkeleton';
 import Sidebar from './components/Sidebar';
 import MobileBottomNav from './components/MobileBottomNav';
 import Toast from './components/Toast';
@@ -22,7 +22,7 @@ import PurchaseModal from './components/PurchaseModal';
 import FeedingModal from './components/FeedingModal';
 import HarvestSaleModal from './components/HarvestSaleModal';
 import SearchModal from './components/SearchModal';
-import { getSession, signIn, signUp } from './services/auth';
+import { getSession, signIn, signUp, signOut } from './services/auth';
 
 export default function App() {
   const {
@@ -89,6 +89,15 @@ export default function App() {
     return signUp(details);
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      setAuthenticated(false);
+    } catch (error) {
+      addToast(error.message || 'Logout failed. Please try again.', 'warning');
+    }
+  };
+
   // Desktop sidebar auto-open, mobile auto-close
   useEffect(() => {
     const handleResize = () => {
@@ -144,6 +153,25 @@ export default function App() {
     closeAllModals();
     setModalTargetPond(pond);
     setShowHarvestModal(true);
+  };
+
+  const markLifecyclePondHarvested = (cycleId, pondName) => {
+    try {
+      const key = 'aquaflow_fish_cycles';
+      const cycles = JSON.parse(localStorage.getItem(key) || '[]');
+      const nextCycles = cycles.map((cycle) =>
+        cycle.id === cycleId
+          ? {
+              ...cycle,
+              harvestedPonds: { ...(cycle.harvestedPonds || {}), [pondName]: true },
+            }
+          : cycle,
+      );
+      localStorage.setItem(key, JSON.stringify(nextCycles));
+      window.dispatchEvent(new CustomEvent('aquaflow-cycle-updated'));
+    } catch {
+      // Keep the sale saved even if lifecycle history cannot be updated.
+    }
   };
 
   const isAnyModalOpen = !!(
@@ -223,12 +251,7 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [isAnyModalOpen, sidebarOpen, addToast]);
 
-  if (authLoading)
-    return (
-      <div className="login-loading" role="status">
-        Checking secure farm session…
-      </div>
-    );
+  if (authLoading) return <AppSkeleton />;
   if (!authenticated) return <LoginView onLogin={handleLogin} onSignup={handleSignup} />;
 
   const renderActiveView = () => {
@@ -255,7 +278,7 @@ export default function App() {
       case 'expenses':
         return <ExpensesView />;
       case 'fish-transfers':
-        return <FishTransfersView />;
+        return <FishTransfersView onOpenHarvest={openHarvestForPond} />;
       default:
         return <DashboardView />;
     }
@@ -275,9 +298,6 @@ export default function App() {
     >
       {/* Decorative ocean ambient backdrop */}
       <BackgroundWaves />
-
-      {/* Interactive water wave ripple overlay */}
-      <WaterRipple />
 
       {/* Deep Ocean Sidebar Navigation */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -300,6 +320,7 @@ export default function App() {
         {/* Sticky Glass Navbar */}
         <Navbar
           onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
+          onLogout={handleLogout}
           onOpenSearchModal={() => {
             closeAllModals();
             setShowSearchModal(true);
@@ -342,7 +363,14 @@ export default function App() {
       {showFeedingModal && <FeedingModal initialPond={modalTargetPond} onClose={closeAllModals} />}
 
       {showHarvestModal && (
-        <HarvestSaleModal initialPond={modalTargetPond} onClose={closeAllModals} />
+        <HarvestSaleModal
+          initialPond={modalTargetPond?.pond || modalTargetPond}
+          initialCycle={modalTargetPond?.cycle}
+          initialHarvestPonds={modalTargetPond?.harvestPonds}
+          initialHarvestPond={modalTargetPond?.harvestPond}
+          onHarvestRecorded={markLifecyclePondHarvested}
+          onClose={closeAllModals}
+        />
       )}
 
       {showSearchModal && <SearchModal isOpen={showSearchModal} onClose={closeAllModals} />}

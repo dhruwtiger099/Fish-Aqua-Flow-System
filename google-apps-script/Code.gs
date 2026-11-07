@@ -86,8 +86,8 @@ function doPost(e) {
       const sheetValues = expenseSheet.getDataRange().getDisplayValues();
       const headerIndex = sheetValues.findIndex(row => row.some(cell => String(cell).trim().toLowerCase() === 'expense no'));
       const headerRow = headerIndex >= 0 ? headerIndex + 1 : 1;
-      const expectedHeaders = ['Timestamps', 'Expense No', 'Expense type', 'Pond / Area', 'Amount (₹)', 'Date', 'Notes'];
-      const fixedRow = [new Date(), item.expenseNo || item.id || '', item.category || '', item.pond || '', item.amount || 0, item.date || '', item.note || ''];
+      const expectedHeaders = ['Timestamps', 'Expense No', 'Expense type', 'Cycle', 'Fish Name / Species', 'Pond / Area', 'Amount (₹)', 'Date', 'Notes'];
+      const fixedRow = [new Date(), item.expenseNo || item.id || '', item.category || '', item.cycleName || item.cycle || '', item.fishName || '', item.pond || '', item.amount || 0, item.date || '', item.note || ''];
       expenseSheet.getRange(headerRow, 1, 1, expectedHeaders.length).setValues([expectedHeaders]);
       expenseSheet.getRange(expenseSheet.getLastRow() + 1, 1, 1, expectedHeaders.length).setValues([fixedRow]);
       return json({ ok: true, row: fixedRow });
@@ -95,9 +95,57 @@ function doPost(e) {
     if (body.action === 'addHarvest') {
       const harvestSheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Harvesting');
       const item = body.item || {};
-      const harvestValues = [new Date(), item.saleNo || item.id || '', item.batchNumber || '', item.species || '', item.weightKg || 0, item.fishCount || 0, item.pricePerKg || 0, item.buyerName || '', item.buyerContact || '', item.harvestCost || 0];
+      const sheetValues = harvestSheet.getDataRange().getDisplayValues();
+      const headerIndex = sheetValues.findIndex((row) =>
+        row.some((cell) => ['Sale No', 'Cycle', 'Fish Name / Species'].includes(String(cell).trim())),
+      );
+      const headerRow = headerIndex >= 0 ? headerIndex + 1 : 1;
+      const expectedHeaders = [
+        'Timestamps',
+        'Sale No',
+        'Cycle',
+        'Fish Name / Species',
+        'Harvest Weight (kg)',
+        'Estimated Fish Count',
+        'Selling Price (₹ / kg)',
+        'Buyer / Distributor',
+        'Buyer Mobile',
+        'Harvest & Netting Cost (₹)',
+        'Reference',
+        'Attachment',
+      ];
+      let headers = harvestSheet
+        .getRange(headerRow, 1, 1, Math.max(harvestSheet.getLastColumn(), 1))
+        .getDisplayValues()[0]
+        .map((header) => String(header).trim());
+      if (!headers.some(Boolean)) {
+        headers = [...expectedHeaders];
+        harvestSheet.getRange(headerRow, 1, 1, headers.length).setValues([headers]);
+      } else {
+        expectedHeaders.forEach((header) => {
+          if (!headers.includes(header)) {
+            harvestSheet.getRange(headerRow, headers.length + 1).setValue(header);
+            headers.push(header);
+          }
+        });
+      }
+      const values = {
+        Timestamps: new Date(),
+        'Sale No': item.saleNo || item.id || '',
+        Cycle: item.cycleName || item.batchNumber || '',
+        'Fish Name / Species': item.species || '',
+        'Harvest Weight (kg)': item.weightKg || 0,
+        'Estimated Fish Count': item.fishCount || 0,
+        'Selling Price (₹ / kg)': item.pricePerKg || 0,
+        'Buyer / Distributor': item.buyerName || '',
+        'Buyer Mobile': item.buyerContact || '',
+        'Harvest & Netting Cost (₹)': item.harvestCost || 0,
+        Reference: item.reference || item.invoiceNumber || '',
+        Attachment: item.attachmentUrl || item.attachmentName || '',
+      };
+      const harvestValues = headers.map((header) => values[header] ?? '');
       harvestSheet.appendRow(harvestValues);
-      return json({ ok: true, row: harvestValues });
+      return json({ ok: true, row: harvestValues, headers });
     }
     const targetSheetName = allowedSheet(body.sheet || 'Inventory');
     if (!targetSheetName) throw new Error('Sheet is not available');
@@ -118,12 +166,18 @@ function doPost(e) {
       return json({ ok: true, row: rowNumber, currentStock: Number(body.currentStock) || 0 });
     }
     if (body.action === 'addFeedCycle') {
-      const feedHeaders = ['Date', 'Time', 'Pond', 'Feed Type', 'Quantity (kg)'];
+      const feedHeaders = ['Date', 'Time', 'Cycle', 'Fish Name / Species', 'Pond', 'Feed Type', 'Quantity (kg)'];
       let existingHeaders = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getDisplayValues()[0];
+      const rationSlotIndex = existingHeaders.findIndex((header) => String(header).trim().toLowerCase() === 'ration slot');
+      if (rationSlotIndex >= 0) {
+        sheet.deleteColumn(rationSlotIndex + 1);
+        existingHeaders.splice(rationSlotIndex, 1);
+      }
       feedHeaders.forEach(header => { if (!existingHeaders.includes(header)) { sheet.getRange(1, existingHeaders.length + 1).setValue(header); existingHeaders.push(header); } });
       const item = body.item || {};
       const feedRow = existingHeaders.map(header => ({
-        'Date': item.date, 'Time': item.time, 'Pond': item.pondName, 'Feed Type': item.feedItem,
+        'Date': item.date, 'Time': item.time, 'Cycle': item.cycleName || item.cycle || '',
+        'Fish Name / Species': item.fishName || item.species || '', 'Pond': item.pondName, 'Feed Type': item.feedItem,
         'Quantity (kg)': item.quantityKg,
       }[header] ?? ''));
       sheet.appendRow(feedRow);

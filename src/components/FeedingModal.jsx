@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useFarm } from '../context/FarmContext';
 import {
   X,
@@ -11,12 +11,32 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import DoubleRingLoader from './DoubleRingLoader';
+import PremiumSelect from './PremiumSelect';
 
 export default function FeedingModal({ initialPond, onClose }) {
   const { ponds, inventory, logFeeding } = useFarm();
 
-  const [selectedPondId, setSelectedPondId] = useState(initialPond?.id || ponds[0]?.id || 'pond-1');
-  const [rationNumber, setRationNumber] = useState('2 of 3 (Noon)');
+  const [cycles, setCycles] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('aquaflow_fish_cycles') || '[]');
+    } catch {
+      return [];
+    }
+  });
+  const [selectedCycleId, setSelectedCycleId] = useState('');
+
+  useEffect(() => {
+    const refreshCycles = () => {
+      try {
+        setCycles(JSON.parse(localStorage.getItem('aquaflow_fish_cycles') || '[]'));
+      } catch {
+        setCycles([]);
+      }
+    };
+    window.addEventListener('aquaflow-cycle-updated', refreshCycles);
+    return () => window.removeEventListener('aquaflow-cycle-updated', refreshCycles);
+  }, []);
+
   const [feedingResponse, setFeedingResponse] = useState('Vigorous / High Activity');
   const [waterTempC, setWaterTempC] = useState(28.2);
   const [notes, setNotes] = useState('');
@@ -28,10 +48,20 @@ export default function FeedingModal({ initialPond, onClose }) {
   }, [inventory]);
 
   const [selectedFeedItemId, setSelectedFeedItemId] = useState(feedItems[0]?.id || '');
-  const pondLabels = ['Nursery', 'Pond A', 'Pond B'];
-  const formPonds = ponds
-    .slice(0, 3)
-    .map((pond, index) => ({ ...pond, displayName: pondLabels[index] }));
+  const pondLabelsById = { 'pond-2': 'Nursery', 'pond-1': 'Pond A', 'pond-3': 'Pond B' };
+  const pondOrder = ['pond-2', 'pond-1', 'pond-3'];
+  const formPonds = pondOrder
+    .map((pondId) => ponds.find((pond) => pond.id === pondId))
+    .filter(Boolean)
+    .map((pond) => ({ ...pond, displayName: pondLabelsById[pond.id] || pond.name }));
+  const feedingCycles = cycles.filter(
+    (cycle) =>
+      cycle.status !== 'completed' &&
+      !(cycle.harvestedPonds?.['Pond A'] && cycle.harvestedPonds?.['Pond B']),
+  );
+  const selectedCycle = feedingCycles.find((cycle) => cycle.id === selectedCycleId);
+  const selectedCycleFishName =
+    selectedCycle?.fishName || selectedCycle?.species || selectedCycle?.fishSpecies || '';
   const [pondFeeds, setPondFeeds] = useState({});
   const [pondQuantities, setPondQuantities] = useState({});
   const [submitError, setSubmitError] = useState('');
@@ -41,26 +71,9 @@ export default function FeedingModal({ initialPond, onClose }) {
     0,
   );
 
-  const activePond = useMemo(() => {
-    return ponds.find((p) => p.id === selectedPondId);
-  }, [ponds, selectedPondId]);
-
   const selectedFeed = useMemo(() => {
     return inventory.find((i) => i.id === selectedFeedItemId);
   }, [inventory, selectedFeedItemId]);
-
-  // Ration calculator based on biomass and standard feeding rate (e.g. 1.8% BW)
-  const recommendedDailyKg = useMemo(() => {
-    if (!activePond || activePond.estimatedBiomassKg <= 0) return 0;
-    const ratePercent = activePond.species.includes('Tilapia') ? 1.6 : 1.8;
-    return Math.round(activePond.estimatedBiomassKg * (ratePercent / 100));
-  }, [activePond]);
-
-  const recommendedRationKg = useMemo(() => {
-    return recommendedDailyKg > 0 ? (recommendedDailyKg / 3).toFixed(1) : 0;
-  }, [recommendedDailyKg]);
-
-  const [feedQtyKg, setFeedQtyKg] = useState(recommendedRationKg || 50);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -79,6 +92,9 @@ export default function FeedingModal({ initialPond, onClose }) {
       logFeeding({
         pondId: pond.id,
         pondName: pond.displayName,
+        cycle: selectedCycle?.id || '',
+        cycleName: selectedCycle?.id || '',
+        fishName: selectedCycleFishName,
         feedItemId,
         feedItem: feed?.name || 'Standard Pellets',
         quantityKg: Number(pondQuantities[pond.id]),
@@ -125,7 +141,7 @@ export default function FeedingModal({ initialPond, onClose }) {
             <div>
               <h2 style={{ fontSize: '1.35rem', color: '#063B5C' }}>Log Feed Ration</h2>
               <p style={{ fontSize: '0.82rem', color: '#547185' }}>
-                Record feeding amount, consumption response & auto-deduct inventory
+
               </p>
             </div>
           </div>
@@ -140,6 +156,30 @@ export default function FeedingModal({ initialPond, onClose }) {
         </div>
 
         <form onSubmit={handleSubmit}>
+          <div className="feeding-cycle-grid">
+            <div className="form-group">
+              <label className="form-label">
+                Cycle <span className="required-star">*</span>
+              </label>
+              <PremiumSelect
+                value={selectedCycleId}
+                onChange={(e) => setSelectedCycleId(e.target.value)}
+                placeholder="Select cycle"
+                required
+                options={[
+                  { value: '', label: 'Select cycle' },
+                  ...feedingCycles.map((cycle) => ({ value: cycle.id, label: cycle.id })),
+                ]}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Fish Name / Species</label>
+              <div className="feeding-cycle-fish-name">
+                {selectedCycleFishName || 'Select a cycle'}
+              </div>
+            </div>
+          </div>
+
           {/* Pond-wise feed allocation */}
           <div className="form-group">
             <label className="form-label">
@@ -162,20 +202,20 @@ export default function FeedingModal({ initialPond, onClose }) {
                     <div style={{ fontWeight: 800, color: '#063B5C', marginBottom: '8px' }}>
                       {pond.displayName}
                     </div>
-                    <select
-                      className="form-select"
+                    <PremiumSelect
                       value={chosenFeedId}
                       onChange={(e) =>
                         setPondFeeds((prev) => ({ ...prev, [pond.id]: e.target.value }))
                       }
-                    >
-                      <option value="">Select feed type</option>
-                      {feedItems.map((feed) => (
-                        <option key={feed.id} value={feed.id}>
-                          {feed.name} ({feed.stockQty} kg available)
-                        </option>
-                      ))}
-                    </select>
+                      placeholder="Select feed type"
+                      options={[
+                        { value: '', label: 'Select feed type' },
+                        ...feedItems.map((feed) => ({
+                          value: feed.id,
+                          label: `${feed.name} (${feed.stockQty} kg available)`,
+                        })),
+                      ]}
+                    />
                     {chosenFeed && (
                       <div style={{ marginTop: '10px' }}>
                         <label className="form-label">
@@ -222,7 +262,7 @@ export default function FeedingModal({ initialPond, onClose }) {
                 .map(
                   (pond) => `${pond.displayName}: ${Number(pondQuantities[pond.id]).toFixed(1)} kg`,
                 )
-                .join(' • ') || 'Enter quantities to view the allocation summary'}
+                .join(' • ') || ' '}
             </div>
           </div>
 
@@ -262,38 +302,6 @@ export default function FeedingModal({ initialPond, onClose }) {
                 </option>
               ))}
             </select>
-          </div>
-
-          {/* Feed Quantity & Ration Slot */}
-          <div style={{ display: 'none', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            <div className="form-group" style={{ display: 'none' }}>
-              <label className="form-label">
-                Feed Amount (kg) <span className="required-star">*</span>
-              </label>
-              <input
-                type="number"
-                step="0.5"
-                min="0.5"
-                inputMode="decimal"
-                className="form-input"
-                value={feedQtyKg}
-                onChange={(e) => setFeedQtyKg(e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Ration Slot</label>
-              <select
-                className="form-select"
-                value={rationNumber}
-                onChange={(e) => setRationNumber(e.target.value)}
-              >
-                <option value="1 of 3 (Morning 07:30)">1 of 3 (Morning 07:30)</option>
-                <option value="2 of 3 (Noon 12:45)">2 of 3 (Noon 12:45)</option>
-                <option value="3 of 3 (Evening 17:30)">3 of 3 (Evening 17:30)</option>
-                <option value="Supplemental Ration">Supplemental / Extra Ration</option>
-              </select>
-            </div>
           </div>
 
           {/* Water Temp & Response */}

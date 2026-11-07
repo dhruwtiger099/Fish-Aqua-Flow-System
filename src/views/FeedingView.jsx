@@ -22,6 +22,11 @@ export default function FeedingView({ onOpenFeeding }) {
     .filter((l) => l.date === new Date().toISOString().split('T')[0])
     .reduce((sum, l) => sum + (Number(l.quantityKg) || 0), 0);
   const totalQuantity = feedingLogs.reduce((sum, l) => sum + (Number(l.quantityKg) || 0), 0);
+  const feedingPonds = [
+    { id: 'pond-2', label: 'Nursery' },
+    { id: 'pond-1', label: 'Pond A' },
+    { id: 'pond-3', label: 'Pond B' },
+  ].filter(({ id }) => ponds.some((pond) => pond.id === id));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -40,7 +45,7 @@ export default function FeedingView({ onOpenFeeding }) {
             Feeding Workflows & FCR
           </h1>
           <p style={{ color: '#547185', fontSize: '0.84rem' }}>
-            Ration management, feed conversion efficiency & automatic stock reconciliation
+
           </p>
         </div>
 
@@ -112,9 +117,11 @@ export default function FeedingView({ onOpenFeeding }) {
         </div>
 
         <div className="mobile-scroll-pills">
-          {['All', ...ponds.map((p) => p.id)].map((pondId) => {
+          {['All', ...feedingPonds.map((pond) => pond.id)].map((pondId) => {
             const pondName =
-              pondId === 'All' ? 'All Ponds' : ponds.find((p) => p.id === pondId)?.code;
+              pondId === 'All'
+                ? 'All Ponds'
+                : feedingPonds.find((pond) => pond.id === pondId)?.label;
             return (
               <button
                 key={pondId}
@@ -198,13 +205,14 @@ export default function FeedingView({ onOpenFeeding }) {
 
       {/* Desktop Table View */}
       <div className="table-container desktop-table-view">
-        <style>{`.feeding-summary-table th:nth-child(3), .feeding-summary-table td:nth-child(3), .feeding-summary-table th:nth-child(6), .feeding-summary-table td:nth-child(6), .feeding-summary-table th:nth-child(7), .feeding-summary-table td:nth-child(7), .feeding-summary-table th:nth-child(8), .feeding-summary-table td:nth-child(8) { display: none; }`}</style>
+        <style>{`.feeding-summary-table th:nth-child(7), .feeding-summary-table td:nth-child(7), .feeding-summary-table th:nth-child(8), .feeding-summary-table td:nth-child(8), .feeding-summary-table th:nth-child(9), .feeding-summary-table td:nth-child(9) { display: none; }`}</style>
         <table className="fms-table feeding-summary-table">
           <thead>
             <tr>
               <th>Date & Time</th>
+              <th>Cycle</th>
+              <th>Fish Name / Species</th>
               <th>Pond</th>
-              <th>Ration Slot</th>
               <th>Feed Formula</th>
               <th>Qty (kg)</th>
               <th>Water Temp</th>
@@ -221,10 +229,17 @@ export default function FeedingView({ onOpenFeeding }) {
                 </td>
                 <td>
                   <span className="badge badge-ocean" style={{ fontSize: '0.76rem' }}>
+                    {log.cycleName || log.cycle || '—'}
+                  </span>
+                </td>
+                <td style={{ fontWeight: 600, color: '#063B5C' }}>
+                  {log.fishName || log.species || '—'}
+                </td>
+                <td>
+                  <span className="badge badge-ocean" style={{ fontSize: '0.76rem' }}>
                     {String(log.pondName || '').split('—')[0]}
                   </span>
                 </td>
-                <td style={{ fontWeight: 600 }}>{log.rationNumber}</td>
                 <td>
                   <div style={{ fontWeight: 600, color: '#063B5C' }}>{log.feedItem}</div>
                 </td>

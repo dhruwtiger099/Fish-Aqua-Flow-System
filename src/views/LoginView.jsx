@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, Fish, LockKeyhole, Mail, UserRound, Waves } from 'lucide-react';
+import { Eye, EyeOff, Fish, LockKeyhole, Mail, UserRound } from 'lucide-react';
 
 export default function LoginView({ onLogin, onSignup }) {
   const [mode, setMode] = useState('login');
@@ -50,26 +50,6 @@ export default function LoginView({ onLogin, onSignup }) {
 
   return (
     <main className="login-page">
-      <section className="login-intro hide-on-mobile" aria-labelledby="login-brand-title">
-        <div className="login-brand-mark">
-          <Waves size={25} aria-hidden="true" />
-        </div>
-        <p className="login-eyebrow">AQUA FLOW SYSTEM</p>
-        <h1 id="login-brand-title">Smart aquaculture operations.</h1>
-        <p className="login-intro__copy">
-          Monitor ponds, manage feed and inventory, track fish cycles, and make every farm decision
-          with confidence.
-        </p>
-        <div className="login-intro__facts">
-          <span>
-            <Fish size={17} aria-hidden="true" /> Pond & biomass tracking
-          </span>
-          <span>
-            <Waves size={17} aria-hidden="true" /> Live farm records
-          </span>
-        </div>
-      </section>
-
       <section className="login-panel" aria-labelledby="login-title">
         <div className="login-panel__header">
           <div className="login-panel__icon">
@@ -82,7 +62,7 @@ export default function LoginView({ onLogin, onSignup }) {
         </div>
         <p className="login-panel__subtitle">
           {mode === 'login'
-            ? 'Sign in to continue managing your aquaculture operation.'
+            ? ' '
             : 'Choose your own username and password for farm access.'}
         </p>
 

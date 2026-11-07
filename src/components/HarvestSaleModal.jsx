@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useFarm } from '../context/FarmContext';
 import {
   X,
@@ -8,9 +8,23 @@ import {
   UserCheck,
   CheckCircle2,
   Calculator,
+  CalendarDays,
+  Fish,
+  CircleDollarSign,
+  UserRound,
+  Phone,
+  WalletCards,
 } from 'lucide-react';
+import PremiumSelect from './PremiumSelect';
 
-export default function HarvestSaleModal({ initialPond, onClose }) {
+export default function HarvestSaleModal({
+  initialPond,
+  initialCycle,
+  initialHarvestPonds,
+  initialHarvestPond,
+  onHarvestRecorded,
+  onClose,
+}) {
   const { ponds, recordSale } = useFarm();
 
   const cycles = useMemo(() => {
@@ -20,7 +34,11 @@ export default function HarvestSaleModal({ initialPond, onClose }) {
       return [];
     }
   }, []);
-  const [selectedCycleId, setSelectedCycleId] = useState('');
+  const [selectedCycleId, setSelectedCycleId] = useState(initialCycle?.id || '');
+  const [selectedFishName, setSelectedFishName] = useState('');
+  const [harvestPonds, setHarvestPonds] = useState(
+    initialHarvestPonds?.length ? initialHarvestPonds : [initialHarvestPond || 'Pond A'],
+  );
   const [weightKg, setWeightKg] = useState('');
   const [fishCount, setFishCount] = useState('');
   const [buyerName, setBuyerName] = useState('');
@@ -29,8 +47,32 @@ export default function HarvestSaleModal({ initialPond, onClose }) {
   const [harvestCost, setHarvestCost] = useState('');
   const [paymentStatus, setPaymentStatus] = useState('Paid');
 
-  const selectedCycle = cycles.find((cycle) => cycle.id === selectedCycleId);
+  const cycleFishName = (cycle) =>
+    cycle?.fishName || cycle?.species || cycle?.fishSpecies || cycle?.fish_name || '';
+
+  const selectedCycle = cycles.find(
+    (cycle) => String(cycle.id).trim() === String(selectedCycleId).trim(),
+  );
   const selectedPond = ponds[0];
+  const harvestableCycles = cycles.filter(
+    (cycle) =>
+      cycle.id === initialCycle?.id ||
+      cycle.status === 'completed' ||
+      cycle.pondADate ||
+      cycle.pondAWeight ||
+      cycle.pondBDate ||
+      cycle.pondBWeight,
+  );
+
+  useEffect(() => {
+    if (initialCycle?.id) setSelectedCycleId(initialCycle.id);
+    if (initialHarvestPonds?.length) setHarvestPonds(initialHarvestPonds);
+    else if (initialHarvestPond) setHarvestPonds([initialHarvestPond]);
+  }, [initialCycle, initialHarvestPonds, initialHarvestPond]);
+
+  useEffect(() => {
+    setSelectedFishName(cycleFishName(selectedCycle));
+  }, [selectedCycleId, cycles]);
 
   const grossRevenue = useMemo(() => {
     return (Number(weightKg) || 0) * (Number(pricePerKg) || 0);
@@ -50,8 +92,10 @@ export default function HarvestSaleModal({ initialPond, onClose }) {
     e.preventDefault();
     recordSale({
       pondId: selectedPond?.id || '',
-      pondName: selectedCycle?.id || 'Fish Cycle',
-      species: selectedCycle?.fishName || 'Market Fish',
+      pondName: selectedCycle?.id || harvestPonds.join(' + '),
+      cycleName: selectedCycle?.id || '',
+      harvestPonds,
+      species: cycleFishName(selectedCycle) || 'Market Fish',
       batchNumber: selectedCycle?.id || `HARV-${Date.now().toString().slice(-4)}`,
       weightKg: Number(weightKg),
       fishCount: Number(fishCount),
@@ -63,6 +107,9 @@ export default function HarvestSaleModal({ initialPond, onClose }) {
       netProfit,
       paymentStatus,
     });
+    if (selectedCycle && onHarvestRecorded) {
+      harvestPonds.forEach((pondName) => onHarvestRecorded(selectedCycle.id, pondName));
+    }
     onClose();
   };
 
@@ -104,7 +151,7 @@ export default function HarvestSaleModal({ initialPond, onClose }) {
                 Record Harvest & Market Sale
               </h2>
               <p style={{ fontSize: '0.82rem', color: '#547185' }}>
-                Batch grading, pricing per kg & biomass deduction
+
               </p>
             </div>
           </div>
@@ -123,25 +170,48 @@ export default function HarvestSaleModal({ initialPond, onClose }) {
           <div className="form-group">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <label className="form-label">
+                <span className="form-field-icon"><CalendarDays size={14} /></span>
                 Cycle <span className="required-star">*</span>
               </label>
               {selectedCycle && (
                 <span className="badge badge-aqua" style={{ fontSize: '0.74rem' }}>
-                  Fish: {selectedCycle.fishName || 'Not specified'}
+                  Fish: {cycleFishName(selectedCycle) || 'Not specified'}
                 </span>
               )}
             </div>
-            <select
-              className="form-select"
+            <PremiumSelect
               value={selectedCycleId}
-              onChange={(e) => setSelectedCycleId(e.target.value)}
+              onChange={(e) => {
+                const nextId = e.target.value;
+                const nextCycle = cycles.find((cycle) => String(cycle.id).trim() === String(nextId).trim());
+                setSelectedCycleId(nextId);
+                setSelectedFishName(cycleFishName(nextCycle));
+              }}
+              required
+              options={harvestableCycles.map((cycle) => ({
+                value: cycle.id,
+                label: `${cycle.id} — ${cycleFishName(cycle) || 'Fish not specified'} (0 kg available)`,
+              }))}
+            />
+            <select
+              className="form-select premium-select-sync"
+              style={{ display: 'none' }}
+              value={selectedCycleId}
+              onChange={(e) => {
+                const nextId = e.target.value;
+                const nextCycle = cycles.find(
+                  (cycle) => String(cycle.id).trim() === String(nextId).trim(),
+                );
+                setSelectedCycleId(nextId);
+                setSelectedFishName(cycleFishName(nextCycle));
+              }}
               required
             >
-              {cycles
+              {harvestableCycles
                 .map((p) => ({
                   ...p,
                   name: p.id,
-                  species: p.fishName || 'Fish not specified',
+                  species: cycleFishName(p) || 'Fish not specified',
                   estimatedBiomassKg: 0,
                 }))
                 .map((p) => (
@@ -153,19 +223,34 @@ export default function HarvestSaleModal({ initialPond, onClose }) {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Fish Name / Species</label>
+            <label className="form-label"><span className="form-field-icon"><Fish size={14} /></span>Fish Name / Species</label>
             <input
               className="form-input"
-              value={selectedCycle?.fishName || ''}
+              value={selectedFishName || cycleFishName(selectedCycle)}
               readOnly
               placeholder="Select a cycle"
             />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">
+              <span className="form-field-icon"><WalletCards size={14} /></span>
+              Harvest Pond
+            </label>
+            <div className="harvest-pond-summary-list" aria-label="Selected harvest ponds">
+              {harvestPonds.map((pondName) => (
+                <span key={pondName} className="harvest-pond-summary">
+                  {pondName}
+                </span>
+              ))}
+            </div>
           </div>
 
           {/* Weight & Count */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             <div className="form-group">
               <label className="form-label">
+                <span className="form-field-icon"><Scale size={14} /></span>
                 Harvest Weight (kg) <span className="required-star">*</span>
               </label>
               <input
@@ -182,6 +267,7 @@ export default function HarvestSaleModal({ initialPond, onClose }) {
 
             <div className="form-group">
               <label className="form-label">
+                <span className="form-field-icon"><Fish size={14} /></span>
                 Estimated Fish Count <span className="required-star">*</span>
               </label>
               <input
@@ -207,7 +293,7 @@ export default function HarvestSaleModal({ initialPond, onClose }) {
                 className="form-select"
                 style={{ display: 'none' }}
                 value=""
-                onChange={() => {}}
+                onChange={() => { }}
               >
                 <option value="Grade A (>500g)">Grade A (&gt;500g Prime Select)</option>
                 <option value="Grade B (350-500g)">Grade B (350–500g Standard)</option>
@@ -249,7 +335,7 @@ export default function HarvestSaleModal({ initialPond, onClose }) {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Buyer Mobile</label>
+              <label className="form-label"><span className="form-field-icon"><Phone size={14} /></span>Buyer Mobile</label>
               <input
                 type="tel"
                 className="form-input"

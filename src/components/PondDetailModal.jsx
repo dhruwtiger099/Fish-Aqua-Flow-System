@@ -15,6 +15,7 @@ import {
   Sparkles,
   Sliders,
 } from 'lucide-react';
+import PremiumSelect from './PremiumSelect';
 
 export default function PondDetailModal({ pond, onClose, onLogFeeding, onRecordHarvest }) {
   const { updatePond } = useFarm();
@@ -150,15 +151,15 @@ export default function PondDetailModal({ pond, onClose, onLogFeeding, onRecordH
               <label className="form-label">
                 Operational Status <span className="required-star">*</span>
               </label>
-              <select
-                className="form-select"
+              <PremiumSelect
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-              >
-                <option value="Active">Active Growth</option>
-                <option value="Maintenance">Maintenance & Servicing</option>
-                <option value="Inactive">Inactive / Fallow</option>
-              </select>
+                options={[
+                  { value: 'Active', label: 'Active Growth' },
+                  { value: 'Maintenance', label: 'Maintenance & Servicing' },
+                  { value: 'Inactive', label: 'Inactive / Fallow' },
+                ]}
+              />
             </div>
 
             {/* Aerator Slider */}

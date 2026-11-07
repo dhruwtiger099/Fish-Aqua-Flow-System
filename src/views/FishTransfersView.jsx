@@ -7,13 +7,14 @@ import {
   isSheetsConfigured,
 } from '../services/googleSheets';
 import DataLimitControl from '../components/DataLimitControl';
+import PremiumSelect from '../components/PremiumSelect';
 
 const KEY = 'aquaflow_fish_cycles';
 const seed = [];
 const today = () => new Date().toISOString().slice(0, 10);
 
-export default function FishTransfersView() {
-  const { ponds, updatePond, limitData } = useFarm();
+export default function FishTransfersView({ onOpenHarvest }) {
+  const { ponds, updatePond, limitData, inventory, sales } = useFarm();
   const [cycles, setCycles] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem(KEY)) || seed;
@@ -24,6 +25,7 @@ export default function FishTransfersView() {
   const [tab, setTab] = useState('nursery');
   const [showNew, setShowNew] = useState(false);
   const [shiftCycle, setShiftCycle] = useState(null);
+  const [selectedHarvestKeys, setSelectedHarvestKeys] = useState([]);
 
   // Listen for hardware/browser back button modal close event
   useEffect(() => {
@@ -56,6 +58,28 @@ export default function FishTransfersView() {
     localStorage.setItem(KEY, JSON.stringify(next));
   };
   const pondsafe = (id) => ponds.find((pond) => pond.id === id) || {};
+  const harvestedPondsForCycle = (cycle) => {
+    const fromLifecycle = Object.keys(cycle.harvestedPonds || {}).filter(
+      (pondName) => cycle.harvestedPonds[pondName],
+    );
+    const matchingSales = sales.filter(
+      (sale) => sale.cycleName === cycle.id || sale.batchNumber === cycle.id,
+    );
+    const fromSales = matchingSales.flatMap((sale) =>
+      Array.isArray(sale.harvestPonds) && sale.harvestPonds.length
+        ? sale.harvestPonds
+        : ['Pond A', 'Pond B'],
+    );
+    return new Set([...fromLifecycle, ...fromSales]);
+  };
+  const fishSpecies = Array.from(
+    new Set(
+      inventory
+        .filter((item) => String(item.category || '').trim().toLowerCase() === 'fish species')
+        .map((item) => String(item.name || item.itemName || '').trim())
+        .filter(Boolean),
+    ),
+  );
   useEffect(() => {
     const refresh = () => {
       try {
@@ -131,12 +155,12 @@ export default function FishTransfersView() {
       estimatedBiomassKg: Math.max(
         0,
         (pondsafe(fromPond)?.estimatedBiomassKg || 0) -
-          (isNurserySplit ? shiftCycle.nurseryWeight : shiftCycle.pondAWeight),
+        (isNurserySplit ? shiftCycle.nurseryWeight : shiftCycle.pondAWeight),
       ),
       liveStockCount: Math.max(
         0,
         (pondsafe(fromPond)?.liveStockCount || 0) -
-          (isNurserySplit ? shiftCycle.nurseryFishCount : count),
+        (isNurserySplit ? shiftCycle.nurseryFishCount : count),
       ),
     });
     if (isNurserySplit) {
@@ -153,29 +177,29 @@ export default function FishTransfersView() {
       if (cycle.id !== shiftCycle.id) return cycle;
       return isNurserySplit
         ? {
-            ...cycle,
-            status: 'pond-b-pending',
-            stage: 'Pond A + Pond B',
-            pondADate: shiftForm.date,
-            pondAWeight,
-            pondAQty,
-            pondBDate: shiftForm.date,
-            pondBWeight,
-            pondBQty,
-            totalShiftWeight: totalWeight,
-            totalShiftQty: totalQty,
-            nurseryShiftNote: shiftForm.note,
-            note: shiftForm.note || cycle.note,
-          }
+          ...cycle,
+          status: 'pond-b-pending',
+          stage: 'Pond A + Pond B',
+          pondADate: shiftForm.date,
+          pondAWeight,
+          pondAQty,
+          pondBDate: shiftForm.date,
+          pondBWeight,
+          pondBQty,
+          totalShiftWeight: totalWeight,
+          totalShiftQty: totalQty,
+          nurseryShiftNote: shiftForm.note,
+          note: shiftForm.note || cycle.note,
+        }
         : {
-            ...cycle,
-            status: 'pond-b-pending',
-            stage: 'Grow-out / Adult (Pond B)',
-            pondBDate: shiftForm.date,
-            pondBWeight: weight,
-            pondBQty: count,
-            pondAShiftNote: shiftForm.note,
-          };
+          ...cycle,
+          status: 'pond-b-pending',
+          stage: 'Grow-out / Adult (Pond B)',
+          pondBDate: shiftForm.date,
+          pondBWeight: weight,
+          pondBQty: count,
+          pondAShiftNote: shiftForm.note,
+        };
     });
     const updatedCycle = nextCycles.find((cycle) => cycle.id === shiftCycle.id);
     save(nextCycles);
@@ -199,12 +223,12 @@ export default function FishTransfersView() {
     const nextCycles = cycles.map((item) =>
       item.id === cycle.id
         ? {
-            ...item,
-            status: 'completed',
-            stage: 'Harvested (Pond B)',
-            harvestDate: today(),
-            harvestWeight: cycle.pondBWeight,
-          }
+          ...item,
+          status: 'completed',
+          stage: 'Harvested (Pond B)',
+          harvestDate: today(),
+          harvestWeight: cycle.pondBWeight,
+        }
         : item,
     );
     save(nextCycles);
@@ -247,6 +271,34 @@ export default function FishTransfersView() {
     tab === 'nursery' ? row.pond === 'Nursery' : row.pond !== 'Nursery',
   );
   const rows = limitData(filteredRows);
+  const selectedHarvestRows = rows.filter((row, index) =>
+    selectedHarvestKeys.includes(`${row.cycle.id}-${row.pond}-${index}`),
+  );
+  const selectedHarvestCycleId = selectedHarvestRows[0]?.cycle.id || null;
+  const harvestableRows = rows.filter((row) => {
+    const harvestedPonds = harvestedPondsForCycle(row.cycle);
+    return row.pond !== 'Nursery' && Number(row.weight || 0) > 0 && !harvestedPonds.has(row.pond);
+  });
+  const selectAllCycleId = selectedHarvestCycleId || harvestableRows[0]?.cycle.id || null;
+  const selectableRows = harvestableRows.filter((row) => row.cycle.id === selectAllCycleId);
+  const selectableKeys = selectableRows.map((row) => {
+    const rowIndex = rows.indexOf(row);
+    return `${row.cycle.id}-${row.pond}-${rowIndex}`;
+  });
+  const allSelected = selectableKeys.length > 0 && selectableKeys.every((key) => selectedHarvestKeys.includes(key));
+  const toggleSelectAll = () => {
+    setSelectedHarvestKeys((current) =>
+      allSelected
+        ? current.filter((key) => !selectableKeys.includes(key))
+        : Array.from(new Set([...current, ...selectableKeys])),
+    );
+  };
+  const toggleHarvestSelection = (row, index) => {
+    const key = `${row.cycle.id}-${row.pond}-${index}`;
+    setSelectedHarvestKeys((current) =>
+      current.includes(key) ? current.filter((item) => item !== key) : [...current, key],
+    );
+  };
   return (
     <div className="inventory-page" style={{ display: 'grid', gap: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -263,12 +315,24 @@ export default function FishTransfersView() {
           </button>
         </div>
       </section>
-      <section className="glass-surface" style={{ padding: 18 }}>
+      <section className="glass-surface fish-cycle-table-surface" style={{ padding: 18 }}>
         <div className="fish-stage-tabs">
-          <button className={tab === 'nursery' ? 'active' : ''} onClick={() => setTab('nursery')}>
+          <button
+            className={tab === 'nursery' ? 'active' : ''}
+            onClick={() => {
+              setTab('nursery');
+              setSelectedHarvestKeys([]);
+            }}
+          >
             Nursery
           </button>
-          <button className={tab === 'pond' ? 'active' : ''} onClick={() => setTab('pond')}>
+          <button
+            className={tab === 'pond' ? 'active' : ''}
+            onClick={() => {
+              setTab('pond');
+              setSelectedHarvestKeys([]);
+            }}
+          >
             Pond
           </button>
         </div>
@@ -277,14 +341,29 @@ export default function FishTransfersView() {
             <h2>{tab === 'nursery' ? 'Nursery batches' : 'Pond batches'}</h2>
             <small>
               {tab === 'nursery'
-                ? 'Original nursery records and transfer history'
-                : 'Pond A and Pond B records in one view'}
+                ? ' '
+                : ' '}
             </small>
           </div>
-          <span className="badge badge-ocean">{rows.length} records</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {tab === 'pond' && selectedHarvestRows.length > 0 && (
+              <button
+                className="btn btn-sm btn-primary"
+                onClick={() =>
+                  onOpenHarvest?.({
+                    cycle: selectedHarvestRows[0].cycle,
+                    harvestPonds: selectedHarvestRows.map((row) => row.pond),
+                  })
+                }
+              >
+                <CheckCircle2 size={14} /> Record selected harvest
+              </button>
+            )}
+            <span className="badge badge-ocean">{rows.length} records</span>
+          </div>
         </div>
         <div className="table-container">
-          <table className="fms-table">
+          <table className={`fms-table fish-cycle-table ${tab === 'pond' ? 'is-pond' : 'is-nursery'}`}>
             <thead>
               <tr>
                 <th>Cycle</th>
@@ -293,7 +372,22 @@ export default function FishTransfersView() {
                 <th>Stage date</th>
                 <th>Weight</th>
                 <th>Quantity</th>
-                <th>Actions</th>
+                <th>
+                  {tab === 'pond' ? (
+                    <label className="harvest-select-all">
+                      <input
+                        className="premium-checkbox"
+                        type="checkbox"
+                        checked={allSelected}
+                        disabled={!selectableKeys.length}
+                        onChange={toggleSelectAll}
+                      />
+                      Select all
+                    </label>
+                  ) : (
+                    'Actions'
+                  )}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -301,7 +395,10 @@ export default function FishTransfersView() {
                 const { cycle } = row;
                 const canShift = row.pond === 'Nursery' && cycle.status === 'nursery-pending';
                 const wasShifted = row.pond === 'Nursery' && cycle.status !== 'nursery-pending';
-                const canHarvest = row.pond === 'Pond B' && cycle.status === 'pond-b-pending';
+                const canHarvest =
+                  row.pond !== 'Nursery' &&
+                  Number(row.weight || 0) > 0 &&
+                  !harvestedPondsForCycle(cycle).has(row.pond);
                 return (
                   <tr key={`${cycle.id}-${row.pond}-${index}`}>
                     <td>
@@ -322,6 +419,18 @@ export default function FishTransfersView() {
                       <strong>{Number(row.qty || 0).toLocaleString()}</strong>
                     </td>
                     <td>
+                      {tab === 'pond' && canHarvest && (
+                        <input
+                          type="checkbox"
+                          aria-label={`Select ${row.pond} harvest for ${cycle.id}`}
+                          checked={selectedHarvestKeys.includes(`${cycle.id}-${row.pond}-${index}`)}
+                          disabled={
+                            Boolean(selectedHarvestCycleId && selectedHarvestCycleId !== cycle.id)
+                          }
+                          onChange={() => toggleHarvestSelection(row, index)}
+                          className="premium-checkbox"
+                        />
+                      )}
                       {canShift && (
                         <button
                           className="btn btn-sm btn-primary"
@@ -331,16 +440,8 @@ export default function FishTransfersView() {
                         </button>
                       )}
                       {wasShifted && <span className="badge badge-ocean">Shifted</span>}
-                      {canHarvest && (
-                        <button
-                          className="btn btn-sm btn-primary"
-                          onClick={() => completePondB(cycle)}
-                        >
-                          <CheckCircle2 size={14} /> Complete / Harvest
-                        </button>
-                      )}
                       {!canShift && !wasShifted && !canHarvest && (
-                        <span className="history-label">History saved</span>
+                        <span className="history-label">Harvested completed</span>
                       )}
                     </td>
                   </tr>
@@ -355,7 +456,7 @@ export default function FishTransfersView() {
           <div className="modal-content fish-cycle-modal" onClick={(e) => e.stopPropagation()}>
             <ModalHeader title="New nursery cycle" close={() => setShowNew(false)} />
             <p className="modal-help">
-              A unique cycle number will be generated for each new nursery batch.
+
             </p>
             <form className="fish-transfer-form" onSubmit={createCycle}>
               <Field label="Stocking date">
@@ -368,12 +469,15 @@ export default function FishTransfersView() {
                 />
               </Field>
               <Field label="Fish name / species">
-                <input
-                  className="form-input"
+                <PremiumSelect
                   value={newForm.fishName}
                   onChange={(e) => setNewForm({ ...newForm, fishName: e.target.value })}
-                  placeholder="e.g. Tilapia, Catfish"
                   required
+                  placeholder={fishSpecies.length ? 'Select fish species' : 'Add Fish Species in Inventory first'}
+                  options={[
+                    { value: '', label: fishSpecies.length ? 'Select fish species' : 'Add Fish Species in Inventory first' },
+                    ...fishSpecies.map((species) => ({ value: species, label: species })),
+                  ]}
                 />
               </Field>
               <Field label="Initial weight (kg)">
@@ -417,10 +521,6 @@ export default function FishTransfersView() {
               <ArrowRight size={18} />
               <strong>Pond A + Pond B</strong>
             </div>
-            <p className="modal-help">
-              Enter the measured weight and transfer date. Fish quantity will remain balanced across
-              both ponds.
-            </p>
             <form className="fish-transfer-form" onSubmit={completeShift}>
               <Field label="Date of shifting">
                 <input
@@ -549,7 +649,7 @@ function ModalHeader({ title, close }) {
   return (
     <div className="modal-header-row">
       <div>
-        <div className="eyebrow">Cycle management</div>
+        <div className="eyebrow"> </div>
         <h2>{title}</h2>
       </div>
       <button className="btn btn-secondary" type="button" onClick={close}>

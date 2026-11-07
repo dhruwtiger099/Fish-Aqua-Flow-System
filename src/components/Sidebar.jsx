@@ -122,6 +122,7 @@ export default function Sidebar({ isOpen, onClose }) {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div
+                className="sidebar-brand-mark"
                 style={{
                   width: '36px',
                   height: '36px',
@@ -138,6 +139,7 @@ export default function Sidebar({ isOpen, onClose }) {
               </div>
               <div>
                 <div
+                  className="sidebar-brand-title"
                   style={{
                     fontFamily: 'Outfit',
                     fontWeight: 800,
@@ -147,15 +149,15 @@ export default function Sidebar({ isOpen, onClose }) {
                 >
                   Aqua Flow System
                 </div>
-                <div style={{ fontSize: '0.72rem', color: '#C2E2EC', fontWeight: 500 }}>
-                  Smart Aquaculture OS
+                <div className="sidebar-brand-subtitle" style={{ fontSize: '0.72rem', color: '#C2E2EC', fontWeight: 500 }}>
+
                 </div>
               </div>
             </div>
 
             <button
               onClick={onClose}
-              className="lg-hidden"
+              className="lg-hidden sidebar-close-button"
               style={{
                 background: 'rgba(255, 255, 255, 0.1)',
                 border: 'none',
@@ -182,6 +184,7 @@ export default function Sidebar({ isOpen, onClose }) {
                 <button
                   key={item.id}
                   onClick={() => handleSelect(item.id)}
+                  className={`sidebar-nav-item${isActive ? ' sidebar-nav-item--active' : ''}`}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -237,11 +240,10 @@ export default function Sidebar({ isOpen, onClose }) {
                             ? 'rgba(233, 162, 59, 0.25)'
                             : 'rgba(34, 211, 238, 0.2)',
                         color: item.badgeVariant === 'warning' ? '#FFD480' : '#22D3EE',
-                        border: `1px solid ${
-                          item.badgeVariant === 'warning'
+                        border: `1px solid ${item.badgeVariant === 'warning'
                             ? 'rgba(233, 162, 59, 0.5)'
                             : 'rgba(34, 211, 238, 0.4)'
-                        }`,
+                          }`,
                       }}
                     >
                       {item.badge}
@@ -279,6 +281,7 @@ export default function Sidebar({ isOpen, onClose }) {
               </span>
             </div>
             <span
+              className="profit-status-badge"
               style={{
                 fontSize: '0.68rem',
                 padding: '2px 7px',
@@ -288,11 +291,10 @@ export default function Sidebar({ isOpen, onClose }) {
                   ? 'rgba(34, 197, 94, 0.18)'
                   : 'rgba(239, 68, 68, 0.18)',
                 color: financialSummary.isProfitable ? '#4ADE80' : '#FCA5A5',
-                border: `1px solid ${
-                  financialSummary.isProfitable
+                border: `1px solid ${financialSummary.isProfitable
                     ? 'rgba(34, 197, 94, 0.35)'
                     : 'rgba(239, 68, 68, 0.35)'
-                }`,
+                  }`,
               }}
             >
               {financialSummary.isProfitable ? 'Profitable' : 'Loss / Pending'}

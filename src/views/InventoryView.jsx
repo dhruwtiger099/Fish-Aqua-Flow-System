@@ -12,6 +12,7 @@ import {
   Boxes,
 } from 'lucide-react';
 import DataLimitControl from '../components/DataLimitControl';
+import PremiumSelect from '../components/PremiumSelect';
 
 export default function InventoryView({ onOpenPurchase }) {
   const {
@@ -653,27 +654,14 @@ export default function InventoryView({ onOpenPurchase }) {
               >
                 <div className="form-group">
                   <label className="form-label">Category</label>
-                  <select
-                    className="form-select"
+                  <PremiumSelect
                     value={newItemCategory}
                     onChange={(e) => setNewItemCategory(e.target.value)}
-                  >
-                    {(masterData.category.length
+                    options={(masterData.category.length
                       ? masterData.category
-                      : [
-                          'Feed',
-                          'Water Treatment',
-                          'Emergency Supplies',
-                          'Supplements',
-                          'Equipment',
-                          'Fish Species',
-                        ]
-                    ).map((value) => (
-                      <option key={value} value={value}>
-                        {value}
-                      </option>
-                    ))}
-                  </select>
+                      : ['Feed', 'Water Treatment', 'Emergency Supplies', 'Supplements', 'Equipment', 'Fish Species']
+                    ).map((value) => ({ value, label: value }))}
+                  />
                 </div>
 
                 <div className="form-group">
@@ -708,20 +696,14 @@ export default function InventoryView({ onOpenPurchase }) {
 
                 <div className="form-group">
                   <label className="form-label">Unit</label>
-                  <select
-                    className="form-select"
+                  <PremiumSelect
                     value={newItemUnit}
                     onChange={(e) => setNewItemUnit(e.target.value)}
-                  >
-                    {(masterData.unit.length
+                    options={(masterData.unit.length
                       ? masterData.unit
                       : ['Kg', 'Pcs', 'Bag', 'Packet', 'MT', 'Ltr']
-                    ).map((value) => (
-                      <option key={value} value={value}>
-                        {value}
-                      </option>
-                    ))}
-                  </select>
+                    ).map((value) => ({ value, label: value }))}
+                  />
                 </div>
 
                 <div className="form-group">
@@ -792,7 +774,7 @@ export default function InventoryView({ onOpenPurchase }) {
                     required
                   />
                   <div style={{ fontSize: '0.72rem', color: '#547185', marginTop: '4px' }}>
-                    Expiry se 7 din pehle item highlight hoga.
+
                   </div>
                 </div>
               )}
@@ -923,9 +905,9 @@ export default function InventoryView({ onOpenPurchase }) {
                           const stockAfterPurchase = Math.min(
                             Number(detailsItem.stockQty) || 0,
                             (Number(detailsItem.purchaseQty) || 0) +
-                              itemPurchases
-                                .slice(0, itemPurchases.length - index)
-                                .reduce((sum, entry) => sum + (Number(entry.quantity) || 0), 0),
+                            itemPurchases
+                              .slice(0, itemPurchases.length - index)
+                              .reduce((sum, entry) => sum + (Number(entry.quantity) || 0), 0),
                           );
                           const cumulativeAsset =
                             stockAfterPurchase * (Number(purchase.unitPrice) || currentUnitCost);

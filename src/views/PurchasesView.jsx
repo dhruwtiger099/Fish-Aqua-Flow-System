@@ -48,7 +48,7 @@ export default function PurchasesView({ onOpenPurchase }) {
             Purchases, Orders & Supplier Logistics
           </h1>
           <p style={{ color: '#547185', fontSize: '0.84rem' }}>
-            Purchase order logs, vendor invoices, freight calculations & inventory auto-receive
+
           </p>
         </div>
 
@@ -164,13 +164,12 @@ export default function PurchasesView({ onOpenPurchase }) {
                 </div>
               </div>
               <span
-                className={`badge ${
-                  po.status === 'Received'
+                className={`badge ${po.status === 'Received'
                     ? 'badge-active'
                     : po.status === 'In Transit'
                       ? 'badge-warning'
                       : 'badge-ocean'
-                }`}
+                  }`}
                 style={{ fontSize: '0.7rem' }}
               >
                 {po.status}
@@ -260,13 +259,12 @@ export default function PurchasesView({ onOpenPurchase }) {
                 </td>
                 <td>
                   <span
-                    className={`badge ${
-                      po.status === 'Received'
+                    className={`badge ${po.status === 'Received'
                         ? 'badge-active'
                         : po.status === 'In Transit'
                           ? 'badge-warning'
                           : 'badge-ocean'
-                    }`}
+                      }`}
                   >
                     {po.status}
                   </span>
