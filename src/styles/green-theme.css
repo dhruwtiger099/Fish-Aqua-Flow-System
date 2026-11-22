@@ -1,0 +1,1758 @@
+/*
+ * Emerald Reserve — premium theme layer
+ *
+ * Deep forest emerald + champagne gold on soft ivory-mint surfaces.
+ * This file changes presentation only (colour, type, depth, finish).
+ * Navigation, layout, component dimensions, interactions and data flow
+ * stay in their existing components so the app workflow is unchanged.
+ */
+
+/* =========================================================
+   1. Design tokens
+========================================================= */
+:root {
+  /* Brand */
+  --em-900: #062019;
+  --em-800: #0a2e23;
+  --em-700: #0d4434;
+  --em-600: #0f6b4f;
+  --em-500: #13845f;
+  --em-400: #1fa679;
+  --em-300: #4fd1a1;
+  --em-200: #a7ecd2;
+  --em-100: #def6ec;
+  --em-50: #f1fbf6;
+
+  --gold-600: #9c7424;
+  --gold-500: #c19a45;
+  --gold-400: #d9b766;
+  --gold-200: #f1e2bb;
+  --gold-50: #fbf6e9;
+
+  /* Ink & surfaces */
+  --ink-900: #0c211b;
+  --ink-700: #2a3f37;
+  --ink-500: #5a6e66;
+  --ink-400: #82958c;
+  --line: #e2ebe5;
+  --line-strong: #cfe0d6;
+  --canvas: #f4f7f3;
+  --surface: #ffffff;
+  --surface-soft: #f8fbf9;
+
+  --grad-primary: linear-gradient(135deg, #1fa679 0%, #0f6b4f 55%, #0a4d3a 100%);
+  --grad-gold: linear-gradient(135deg, #e6c878 0%, #c19a45 50%, #9c7424 100%);
+  --grad-forest: linear-gradient(170deg, #0d3a2d 0%, #082a20 55%, #051b15 100%);
+
+  --shadow-1: 0 1px 2px rgba(12, 33, 27, 0.04), 0 2px 6px rgba(12, 33, 27, 0.04);
+  --shadow-2: 0 1px 2px rgba(12, 33, 27, 0.04), 0 8px 24px -6px rgba(12, 33, 27, 0.1);
+  --shadow-3: 0 2px 4px rgba(12, 33, 27, 0.05), 0 18px 40px -10px rgba(12, 33, 27, 0.18);
+  --shadow-emerald: 0 1px 0 rgba(255, 255, 255, 0.18) inset, 0 8px 18px -6px rgba(15, 107, 79, 0.55);
+  --ring: 0 0 0 4px rgba(31, 166, 121, 0.16);
+
+  /* Map onto existing app tokens */
+  --ds-primary: var(--em-600);
+  --ds-primary-hover: var(--em-700);
+  --ds-primary-soft: var(--em-100);
+  --ds-text: var(--ink-900);
+  --ds-muted: var(--ink-500);
+  --ds-subtle: var(--ink-400);
+  --ds-border: var(--line);
+  --ds-surface: var(--surface);
+  --ds-surface-muted: var(--canvas);
+
+  --color-ocean-deep: var(--ink-900);
+  --color-ocean-dark: var(--em-900);
+  --color-sea-blue: var(--em-600);
+  --color-sea-blue-light: var(--em-400);
+  --color-aqua: var(--em-300);
+  --color-aqua-bright: var(--em-400);
+  --color-light-ocean: var(--em-50);
+  --color-light-ocean-bg: var(--canvas);
+  --color-light-ocean-soft: var(--surface-soft);
+  --color-text-main: var(--ink-900);
+  --color-text-secondary: var(--ink-500);
+  --color-text-muted: var(--ink-400);
+  --color-success: var(--em-500);
+  --color-success-bg: rgba(19, 132, 95, 0.1);
+  --color-success-border: rgba(19, 132, 95, 0.26);
+  --color-warning: #b7791f;
+  --color-warning-bg: rgba(193, 154, 69, 0.14);
+  --color-warning-border: rgba(193, 154, 69, 0.36);
+  --color-danger: #c2414b;
+  --color-danger-bg: rgba(194, 65, 75, 0.1);
+  --color-danger-border: rgba(194, 65, 75, 0.3);
+  --color-glass-border-subtle: rgba(15, 107, 79, 0.14);
+
+  --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+}
+
+/* =========================================================
+   2. Canvas & typography
+========================================================= */
+html,
+body {
+  background-color: var(--canvas) !important;
+  background-image:
+    radial-gradient(1200px 600px at 0% -10%, rgba(79, 209, 161, 0.14), transparent 60%),
+    radial-gradient(900px 500px at 110% 110%, rgba(217, 183, 102, 0.12), transparent 60%),
+    linear-gradient(180deg, #f8fbf8 0%, #f1f6f2 100%) !important;
+  background-attachment: fixed;
+  color: var(--ink-900) !important;
+}
+
+/* Replace the legacy Calibri / Georgia mix with a modern premium pairing. */
+body,
+button,
+input,
+select,
+textarea,
+p,
+small,
+label,
+td,
+th,
+.badge,
+.eyebrow {
+  font-family: var(--font-main) !important;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.title,
+.page-title {
+  font-family: var(--font-heading) !important;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+td,
+.inventory-kpi-value,
+.detail-kpi strong,
+.detail-record-value,
+.main-content-area [style*='font-weight: 800'],
+.main-content-area [style*='font-weight: 700'] {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: rgba(79, 209, 161, 0.3);
+  color: var(--ink-900);
+}
+
+/* Refined scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 107, 79, 0.28) transparent;
+}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: rgba(15, 107, 79, 0.22);
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover { background-color: rgba(15, 107, 79, 0.4); }
+
+/* Soften the ambient ocean bubbles into a subtle emerald shimmer. */
+.ambient-bubble {
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(79, 209, 161, 0.12) 60%, rgba(15, 107, 79, 0.05) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.55) !important;
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.6), 0 4px 12px rgba(15, 107, 79, 0.06) !important;
+}
+.ambient-light-ray {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.26) 0%, rgba(217, 183, 102, 0.06) 40%, transparent 70%) !important;
+}
+
+/* =========================================================
+   3. Surfaces & cards
+========================================================= */
+.glass-surface,
+.glass-surface-dense,
+.mobile-record-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(252, 254, 253, 0.96) 100%) !important;
+  border: 1px solid var(--line) !important;
+  box-shadow: var(--shadow-2), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+}
+
+.glass-surface:hover,
+.mobile-record-card:hover {
+  border-color: var(--line-strong) !important;
+  box-shadow: var(--shadow-3), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+/* KPI / stat tiles: gold hairline accent across the top edge. */
+.inventory-kpi-card,
+.main-content-area [style*='repeat(auto-fit, minmax(140px'] > .glass-surface {
+  position: relative;
+  overflow: hidden;
+}
+.inventory-kpi-card::after,
+.main-content-area [style*='repeat(auto-fit, minmax(140px'] > .glass-surface::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--em-400), var(--gold-400) 70%, transparent);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.inventory-kpi-title,
+.detail-kpi small,
+.eyebrow,
+.login-eyebrow {
+  letter-spacing: 0.08em !important;
+}
+.inventory-kpi-title,
+.detail-kpi small {
+  color: var(--ink-500) !important;
+}
+.inventory-kpi-value,
+.detail-kpi strong {
+  color: var(--ink-900) !important;
+  font-family: var(--font-heading) !important;
+  letter-spacing: -0.02em;
+}
+.eyebrow {
+  color: var(--gold-600) !important;
+}
+
+.inventory-detail-kpis .detail-kpi {
+  border-color: var(--line) !important;
+  box-shadow: var(--shadow-1);
+}
+.detail-kpi-purchased { background: linear-gradient(135deg, #f3fbf7, #e4f6ed) !important; }
+.detail-kpi-used { background: linear-gradient(135deg, #fdf9ee, #f8eed4) !important; }
+.detail-kpi-current { background: linear-gradient(135deg, #eff8f4, #dcf1e7) !important; }
+
+/* =========================================================
+   4. Top navbar
+========================================================= */
+.app-navbar {
+  background: rgba(255, 255, 255, 0.82) !important;
+  backdrop-filter: saturate(160%) blur(18px) !important;
+  -webkit-backdrop-filter: saturate(160%) blur(18px) !important;
+  border-bottom: 1px solid var(--line) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 6px 20px -10px rgba(12, 33, 27, 0.14) !important;
+}
+
+.app-navbar-actions,
+.app-navbar-actions button {
+  color: var(--ink-900) !important;
+}
+
+.app-navbar-title {
+  background: linear-gradient(100deg, var(--em-700) 0%, var(--em-500) 55%, var(--gold-500) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: var(--em-600) !important;
+  -webkit-text-fill-color: transparent !important;
+  font-family: var(--font-heading) !important;
+}
+
+.app-navbar-brand-area > button,
+.app-navbar-actions .btn-icon {
+  background: var(--em-50) !important;
+  border: 1px solid rgba(15, 107, 79, 0.16) !important;
+  color: var(--em-600) !important;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.app-navbar-brand-area > button:hover,
+.app-navbar-actions .btn-icon:hover {
+  background: var(--em-100) !important;
+  border-color: rgba(15, 107, 79, 0.3) !important;
+}
+
+.quick-search-desktop {
+  background: var(--surface-soft) !important;
+  border: 1px solid var(--line-strong) !important;
+  color: var(--ink-500) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.quick-search-desktop:hover {
+  border-color: rgba(15, 107, 79, 0.35) !important;
+  box-shadow: var(--ring) !important;
+}
+.quick-search-desktop svg { color: var(--em-500) !important; stroke: var(--em-500) !important; }
+.quick-search-desktop kbd {
+  background: #fff !important;
+  border: 1px solid var(--line-strong) !important;
+  color: var(--ink-500) !important;
+}
+
+.navbar-install-btn {
+  background: var(--grad-primary) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+  box-shadow: var(--shadow-emerald) !important;
+}
+
+.mobile-user-initial {
+  color: var(--em-600) !important;
+  -webkit-text-fill-color: var(--em-600) !important;
+}
+
+/* =========================================================
+   5. Sidebar
+========================================================= */
+.glass-sidebar {
+  background: var(--grad-forest) !important;
+  border-right: 1px solid rgba(217, 183, 102, 0.14) !important;
+  box-shadow: 10px 0 34px -8px rgba(6, 32, 25, 0.35) !important;
+}
+
+.glass-sidebar::before {
+  background:
+    radial-gradient(420px 260px at 0% 0%, rgba(79, 209, 161, 0.18), transparent 65%),
+    radial-gradient(360px 240px at 100% 100%, rgba(217, 183, 102, 0.1), transparent 65%) !important;
+}
+
+.glass-sidebar .sidebar-brand-title {
+  color: #ffffff !important;
+  font-family: var(--font-heading) !important;
+  letter-spacing: -0.01em;
+}
+.glass-sidebar .sidebar-brand-subtitle {
+  color: var(--gold-400) !important;
+  letter-spacing: 0.06em;
+}
+
+.glass-sidebar .sidebar-brand-mark {
+  background: var(--grad-gold) !important;
+  color: var(--em-900) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 8px 20px -6px rgba(193, 154, 69, 0.55) !important;
+}
+
+.glass-sidebar .sidebar-close-button {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  color: var(--em-200) !important;
+}
+
+.glass-sidebar nav button.sidebar-nav-item,
+.glass-sidebar nav button.sidebar-nav-item span {
+  color: #b9d3c8 !important;
+}
+.glass-sidebar nav button.sidebar-nav-item {
+  position: relative;
+  border-color: transparent !important;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.glass-sidebar nav button.sidebar-nav-item svg {
+  color: #7fbfa6 !important;
+}
+
+.glass-sidebar nav button.sidebar-nav-item:hover,
+.glass-sidebar nav button.sidebar-nav-item:hover span {
+  color: #ffffff !important;
+}
+.glass-sidebar nav button.sidebar-nav-item:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.glass-sidebar nav button.sidebar-nav-item--active,
+.glass-sidebar nav button.sidebar-nav-item--active span {
+  color: #ffffff !important;
+}
+.glass-sidebar nav button.sidebar-nav-item--active {
+  background: linear-gradient(100deg, rgba(79, 209, 161, 0.18) 0%, rgba(79, 209, 161, 0.05) 100%) !important;
+  border-color: rgba(79, 209, 161, 0.22) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 10px 24px -12px rgba(0, 0, 0, 0.5) !important;
+}
+.glass-sidebar nav button.sidebar-nav-item--active::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: 22%;
+  bottom: 22%;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--grad-gold);
+  box-shadow: 0 0 10px rgba(217, 183, 102, 0.6);
+}
+.glass-sidebar nav button.sidebar-nav-item--active svg {
+  color: var(--gold-400) !important;
+  filter: drop-shadow(0 0 6px rgba(217, 183, 102, 0.35));
+}
+
+/* =========================================================
+   6. Buttons
+========================================================= */
+.btn {
+  transition: transform 0.18s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.btn-primary,
+.btn-aqua,
+.fish-stage-tabs button.active,
+.mobile-scroll-pills .btn-primary,
+.sales-tabs .sales-tab--active,
+.login-submit {
+  border: 1px solid rgba(10, 77, 58, 0.6) !important;
+  background: var(--grad-primary) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.01em;
+  box-shadow: var(--shadow-emerald) !important;
+}
+.btn-primary:hover,
+.btn-aqua:hover,
+.login-submit:hover {
+  filter: brightness(1.06) saturate(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2) inset, 0 12px 24px -8px rgba(15, 107, 79, 0.6) !important;
+}
+.btn-primary:active,
+.btn-aqua:active,
+.login-submit:active {
+  transform: translateY(0);
+  filter: brightness(0.97);
+}
+
+.btn-secondary,
+.fish-stage-tabs button,
+.mobile-scroll-pills .btn,
+.sales-tabs .sales-tab {
+  background: #ffffff !important;
+  border: 1px solid var(--line-strong) !important;
+  color: var(--ink-700) !important;
+  box-shadow: var(--shadow-1) !important;
+}
+
+.btn-outline {
+  background: transparent !important;
+  border: 1px solid rgba(15, 107, 79, 0.32) !important;
+  color: var(--em-600) !important;
+}
+
+.btn-outline:hover,
+.btn-secondary:hover,
+.fish-stage-tabs button:not(.active):hover,
+.sales-tabs .sales-tab:not(.sales-tab--active):hover {
+  border-color: rgba(15, 107, 79, 0.45) !important;
+  color: var(--em-700) !important;
+  background: var(--em-50) !important;
+}
+
+.btn:focus-visible,
+.login-submit:focus-visible {
+  outline: none !important;
+  box-shadow: var(--ring), var(--shadow-emerald) !important;
+}
+
+/* =========================================================
+   7. Forms
+========================================================= */
+.form-label,
+.login-field {
+  font-weight: 600 !important;
+  letter-spacing: 0.005em;
+}
+.form-label { color: var(--ink-700) !important; }
+.required-star { color: var(--color-danger) !important; }
+.form-hint { color: var(--ink-400) !important; }
+
+.form-input,
+.form-select,
+.form-textarea,
+.premium-select-trigger {
+  border: 1px solid var(--line-strong) !important;
+  background-color: #ffffff !important;
+  color: var(--ink-900) !important;
+  box-shadow: 0 1px 2px rgba(12, 33, 27, 0.04) inset !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: #a3b3ab !important;
+}
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover,
+.premium-select-trigger:hover {
+  border-color: rgba(15, 107, 79, 0.35) !important;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus,
+.premium-select-trigger:focus-visible,
+.premium-select-trigger[aria-expanded='true'] {
+  border-color: var(--em-500) !important;
+  box-shadow: var(--ring) !important;
+  outline: none !important;
+}
+
+.form-field-icon { color: var(--em-500) !important; }
+
+.premium-select-menu {
+  border: 1px solid var(--line) !important;
+  background: #ffffff !important;
+  box-shadow: var(--shadow-3) !important;
+}
+.premium-select-menu button:hover,
+.premium-select-menu button[aria-selected='true'] {
+  background: var(--em-50) !important;
+  color: var(--em-700) !important;
+}
+
+.premium-checkbox,
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--em-500);
+}
+
+/* =========================================================
+   8. Tables
+========================================================= */
+.table-container {
+  border: 1px solid var(--line) !important;
+  background: #ffffff !important;
+  box-shadow: var(--shadow-1) !important;
+}
+
+.fms-table th {
+  background: linear-gradient(180deg, #f6faf7 0%, #edf5f0 100%) !important;
+  color: var(--ink-500) !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  border-bottom: 1px solid var(--line-strong) !important;
+}
+
+.fms-table td {
+  border-bottom-color: #edf3ef !important;
+}
+
+.fms-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+.fms-table tbody tr:nth-child(even) {
+  background-color: rgba(244, 247, 243, 0.55);
+}
+.fms-table tbody tr:hover {
+  background-color: rgba(79, 209, 161, 0.08) !important;
+}
+
+/* =========================================================
+   9. Badges & status
+========================================================= */
+.badge {
+  font-weight: 700 !important;
+  letter-spacing: 0.02em;
+}
+
+.badge-ocean,
+.badge-aqua,
+.badge-active,
+.main-content-area .badge-ocean,
+.main-content-area .badge-aqua,
+.main-content-area .badge-active {
+  background: var(--em-100) !important;
+  border: 1px solid rgba(15, 107, 79, 0.22) !important;
+  color: var(--em-700) !important;
+}
+
+.badge-warning,
+.badge-maintenance,
+.main-content-area .badge-warning,
+.main-content-area .badge-maintenance {
+  background: var(--gold-50) !important;
+  border: 1px solid rgba(193, 154, 69, 0.38) !important;
+  color: #85601a !important;
+}
+
+.badge-danger,
+.badge-inactive,
+.main-content-area .badge-danger,
+.main-content-area .badge-inactive {
+  background: #fdf0f1 !important;
+  border: 1px solid rgba(194, 65, 75, 0.26) !important;
+  color: #a3333d !important;
+}
+
+.status-dot.active {
+  background-color: var(--em-400) !important;
+  box-shadow: 0 0 0 3px rgba(31, 166, 121, 0.18), 0 0 8px rgba(31, 166, 121, 0.5) !important;
+}
+.status-dot.warning {
+  background-color: var(--gold-500) !important;
+  box-shadow: 0 0 0 3px rgba(193, 154, 69, 0.18) !important;
+}
+.status-dot.danger {
+  background-color: var(--color-danger) !important;
+  box-shadow: 0 0 0 3px rgba(194, 65, 75, 0.16) !important;
+}
+
+/* =========================================================
+   10. Modals & overlays
+========================================================= */
+.modal-overlay {
+  background: rgba(6, 32, 25, 0.48) !important;
+  backdrop-filter: blur(6px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(120%) !important;
+}
+
+.modal-content {
+  background: #ffffff !important;
+  border: 1px solid var(--line) !important;
+  box-shadow: 0 30px 70px -20px rgba(6, 32, 25, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.6) inset !important;
+}
+
+.modal-actions {
+  border-top-color: var(--line) !important;
+}
+
+/* =========================================================
+   11. Mobile bottom dock
+========================================================= */
+/* Styled as the liquid dock in section 18. */
+
+/* =========================================================
+   12. Login screen
+========================================================= */
+.login-page,
+.login-loading {
+  background:
+    radial-gradient(800px 500px at 10% 0%, rgba(79, 209, 161, 0.16), transparent 60%),
+    radial-gradient(700px 500px at 100% 100%, rgba(217, 183, 102, 0.14), transparent 60%),
+    linear-gradient(160deg, #0b3328 0%, #072219 55%, #04150f 100%) !important;
+}
+
+.login-brand-mark,
+.login-panel__icon {
+  border: 1px solid rgba(241, 226, 187, 0.5) !important;
+  background: var(--grad-gold) !important;
+  color: var(--em-900) !important;
+  box-shadow: 0 10px 24px -8px rgba(193, 154, 69, 0.6) !important;
+}
+
+.login-eyebrow { color: var(--gold-400) !important; }
+.login-intro h1 {
+  font-family: var(--font-heading) !important;
+  color: #ffffff !important;
+  letter-spacing: -0.035em;
+}
+.login-intro__copy { color: #b7cfc4 !important; }
+.login-intro__facts { color: #def6ec !important; }
+.login-intro__facts svg { color: var(--em-300) !important; }
+
+.login-panel {
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: linear-gradient(180deg, rgba(16, 58, 45, 0.85) 0%, rgba(10, 40, 31, 0.92) 100%) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 30px 60px -20px rgba(0, 0, 0, 0.55) !important;
+}
+.login-panel h2 { color: #ffffff !important; font-family: var(--font-heading) !important; }
+.login-panel__subtitle { color: #a9c4b8 !important; }
+.login-field { color: #e3f3ec !important; }
+
+.login-input-wrap {
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.login-input-wrap input { color: #ffffff !important; }
+.login-input-wrap input::placeholder { color: #7f9e92 !important; }
+.login-input-wrap svg { color: var(--em-300) !important; }
+.login-input-wrap:focus-within {
+  border-color: var(--em-300) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 0 0 4px rgba(79, 209, 161, 0.16) !important;
+}
+.login-password-toggle { color: #a9c4b8 !important; }
+.login-remember { color: #cfe3da !important; }
+.login-link { color: var(--gold-400) !important; }
+.login-link:hover { color: var(--gold-200) !important; }
+.login-panel__footer { color: #87a69a !important; border-top-color: rgba(255, 255, 255, 0.08) !important; }
+
+.login-submit {
+  background: var(--grad-gold) !important;
+  border-color: rgba(241, 226, 187, 0.4) !important;
+  color: var(--em-900) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 12px 26px -10px rgba(193, 154, 69, 0.7) !important;
+}
+
+/* =========================================================
+   13. Loading skeleton
+========================================================= */
+.app-skeleton {
+  color: var(--ink-900) !important;
+  background:
+    radial-gradient(circle at 85% 5%, rgba(79, 209, 161, 0.12), transparent 30%),
+    linear-gradient(135deg, #f8fbf8 0%, #f1f6f2 100%) !important;
+}
+.app-skeleton__block {
+  background: linear-gradient(110deg, #e4eee8, #f8fbf9, #e4eee8) !important;
+  background-size: 220% 100% !important;
+}
+
+/* =========================================================
+   14. Text hierarchy across views
+========================================================= */
+body,
+button,
+input,
+select,
+textarea {
+  color: var(--ink-900);
+}
+
+.main-content-area,
+.main-content-area label,
+.main-content-area td,
+.main-content-area li {
+  color: var(--ink-900) !important;
+}
+.main-content-area th {
+  color: var(--ink-500) !important;
+}
+
+.main-content-area h1,
+.main-content-area h2,
+.main-content-area h3,
+.main-content-area h4,
+.main-content-area h5,
+.main-content-area h6 {
+  color: var(--ink-900) !important;
+  letter-spacing: -0.025em;
+}
+
+.main-content-area p,
+.main-content-area small,
+.main-content-area .form-hint,
+.main-content-area .dashboard-context,
+.main-content-area [class*='subtitle'],
+.main-content-area [class*='description'] {
+  color: var(--ink-500) !important;
+}
+
+.main-content-area .btn,
+.main-content-area .status-dot,
+.main-content-area .payment-cell-button,
+.main-content-area .sales-tab,
+.main-content-area .mobile-action-btn,
+.main-content-area .form-input,
+.main-content-area .form-select,
+.main-content-area .form-textarea,
+.main-content-area .premium-select-trigger,
+.main-content-area .premium-select-menu button,
+.main-content-area .ui-input,
+.main-content-area .ui-field {
+  color: var(--ink-900) !important;
+}
+.main-content-area .form-label {
+  color: var(--ink-700) !important;
+}
+
+.main-content-area .btn-primary,
+.main-content-area .btn-aqua,
+.main-content-area .btn-primary span,
+.main-content-area .btn-aqua span,
+.main-content-area .sales-tab--active,
+.main-content-area .sales-tab--active span,
+.main-content-area .fish-stage-tabs button.active {
+  color: #ffffff !important;
+}
+
+.main-content-area .btn-outline {
+  color: var(--em-600) !important;
+}
+
+.main-content-area .ui-field__error {
+  color: #a3333d !important;
+}
+
+/* Re-tint legacy inline ocean colours (hex and React's serialised rgb()). */
+[style*='#063B5C'],
+[style*='#063b5c'],
+[style*='#0f2942'],
+[style*='#0F2942'],
+.main-content-area [style*='color: rgb(6, 59, 92)'],
+.main-content-area [style*='color: rgb(15, 41, 66)'] {
+  color: var(--ink-900) !important;
+}
+
+[style*='#547185'],
+[style*='#7A97AA'],
+[style*='#7a97aa'],
+.main-content-area [style*='color: rgb(84, 113, 133)'],
+.main-content-area [style*='color: rgb(122, 151, 170)'] {
+  color: var(--ink-500) !important;
+}
+
+[style*='#087EA4'],
+[style*='#087ea4'],
+[style*='#0B7285'],
+[style*='#0b7285'],
+.main-content-area [style*='color: rgb(8, 126, 164)'],
+.main-content-area [style*='color: rgb(11, 114, 133)'] {
+  color: var(--em-600) !important;
+  border-color: rgba(15, 107, 79, 0.26) !important;
+}
+
+[style*='#22D3EE'],
+[style*='#22d3ee'],
+.main-content-area [style*='color: rgb(34, 211, 238)'] {
+  color: var(--em-400) !important;
+  border-color: rgba(31, 166, 121, 0.3) !important;
+}
+
+[style*='#16A085'],
+[style*='#16a085'],
+.main-content-area [style*='color: rgb(22, 160, 133)'] {
+  color: var(--em-500) !important;
+}
+
+/* Keep the gradient brand title in the navbar despite inline-colour rules. */
+.app-navbar-title[style] {
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* =========================================================
+   15. Mobile composition (layout values unchanged)
+========================================================= */
+@media (max-width: 767px) {
+  body {
+    background: var(--canvas) !important;
+  }
+
+  .app-navbar {
+    min-height: 56px !important;
+    padding: 8px 10px !important;
+    background: rgba(255, 255, 255, 0.94) !important;
+  }
+
+  .app-navbar-actions > div:last-child > button {
+    background: #ffffff !important;
+    border-color: var(--line-strong) !important;
+  }
+
+  .main-content-area {
+    padding: 14px 12px calc(92px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .main-content-area > * {
+    gap: 12px !important;
+  }
+
+  .glass-surface,
+  .glass-surface-dense,
+  .mobile-record-card {
+    border-radius: 18px !important;
+    box-shadow: var(--shadow-2) !important;
+  }
+
+  .main-content-area .glass-surface {
+    overflow: hidden;
+  }
+
+  .mobile-action-bar {
+    gap: 8px !important;
+  }
+
+  .mobile-action-btn {
+    min-height: 42px !important;
+    border-radius: 12px !important;
+    font-size: 0.78rem !important;
+    box-shadow: var(--shadow-1) !important;
+  }
+
+  .main-content-area [style*='repeat(auto-fit, minmax(140px'] {
+    gap: 10px !important;
+  }
+
+  .main-content-area [style*='repeat(auto-fit, minmax(140px'] > .glass-surface {
+    min-height: 118px;
+    padding: 13px !important;
+    border-radius: 16px !important;
+  }
+
+  .main-content-area [style*='minmax(290px'] {
+    gap: 12px !important;
+  }
+
+  .form-input,
+  .form-select,
+  .form-textarea,
+  .premium-select-trigger {
+    min-height: 44px !important;
+    border-radius: 12px !important;
+  }
+
+  .glass-sidebar {
+    bottom: calc(68px + env(safe-area-inset-bottom)) !important;
+    max-height: calc(100dvh - 68px - env(safe-area-inset-bottom)) !important;
+    border-radius: 0 22px 22px 0 !important;
+  }
+
+  .modal-content {
+    border-radius: 22px 22px 0 0 !important;
+    padding: 20px 16px calc(28px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .app-footer-copyright {
+    display: none !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .main-content-area {
+    padding-inline: 10px !important;
+  }
+
+  .app-navbar-title {
+    max-width: 112px !important;
+  }
+
+  .main-content-area [style*='repeat(auto-fit, minmax(140px'] > .glass-surface {
+    padding: 11px !important;
+  }
+}
+
+/* Respect users who prefer less motion. */
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .glass-surface,
+  .mobile-record-card {
+    transition: none !important;
+  }
+  .btn-primary:hover,
+  .btn-aqua:hover,
+  .login-submit:hover {
+    transform: none;
+  }
+}
+
+/* =========================================================
+   16. Premium forms — applies to every modal and page form
+   (scoped to .modal-content so it outranks the legacy modal rules;
+   sizes, spacing and field order are untouched)
+========================================================= */
+
+/* --- Modal shell --- */
+.modal-content {
+  background:
+    radial-gradient(600px 180px at 0% 0%, rgba(79, 209, 161, 0.07), transparent 70%),
+    radial-gradient(500px 160px at 100% 0%, rgba(217, 183, 102, 0.07), transparent 70%),
+    #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.9) !important;
+  box-shadow:
+    0 0 0 1px rgba(12, 33, 27, 0.06),
+    0 40px 90px -24px rgba(6, 32, 25, 0.5),
+    0 1px 0 rgba(255, 255, 255, 1) inset !important;
+}
+
+/* Gold-emerald crown along the top edge. */
+.modal-content::before {
+  left: 0 !important;
+  right: 0 !important;
+  height: 4px !important;
+  border-radius: 0 !important;
+  background: linear-gradient(90deg, var(--em-600) 0%, var(--em-400) 40%, var(--gold-400) 75%, var(--gold-500) 100%) !important;
+  opacity: 1 !important;
+}
+
+/* Header row (first block): hairline divider. */
+.modal-content > div:first-child[style*='border-bottom'] {
+  border-bottom: 1px solid var(--line) !important;
+}
+
+/* Header icon tile: emerald jewel with gold rim. */
+.modal-content > div:first-child [style*='linear-gradient(135deg'] {
+  background: var(--grad-primary) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(217, 183, 102, 0.55) !important;
+  box-shadow:
+    0 0 0 3px rgba(217, 183, 102, 0.14),
+    0 1px 0 rgba(255, 255, 255, 0.25) inset,
+    0 10px 20px -8px rgba(15, 107, 79, 0.6) !important;
+}
+.modal-content > div:first-child [style*='linear-gradient(135deg'] svg {
+  color: #ffffff !important;
+}
+
+/* Thin decorative gradient strips used inside some forms. */
+.modal-content [style*='linear-gradient(90deg'] {
+  background: linear-gradient(90deg, var(--em-500), var(--em-300) 50%, var(--gold-400)) !important;
+}
+
+.modal-content h2,
+.payment-modal-header h2,
+.payment-panel-heading h2 {
+  color: var(--ink-900) !important;
+  font-family: var(--font-heading) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.025em !important;
+}
+.modal-content > div:first-child p,
+.modal-content .modal-help,
+.payment-modal-header p,
+.payment-panel-heading p {
+  color: var(--ink-500) !important;
+}
+
+/* Close button */
+.modal-content .btn-icon {
+  border-radius: 12px !important;
+  color: var(--ink-500) !important;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.modal-content .btn-icon:hover {
+  background: var(--em-50) !important;
+  color: var(--em-700) !important;
+}
+
+/* --- Labels --- */
+.form-label,
+.modal-content .form-label,
+.purchase-order-modal .form-label,
+.ui-field__label {
+  color: var(--ink-700) !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.015em !important;
+  transition: color 0.2s ease;
+}
+.form-group:focus-within > .form-label,
+.modal-content .form-group:focus-within > .form-label,
+.ui-field:focus-within .ui-field__label {
+  color: var(--em-600) !important;
+}
+.required-star,
+.modal-content .required-star {
+  color: #c2414b !important;
+  font-weight: 800;
+}
+
+/* --- Fields --- */
+.form-input,
+.form-textarea,
+.ui-input,
+.modal-content .form-input,
+.modal-content .form-textarea,
+.purchase-order-modal .form-input,
+.purchase-order-modal .form-textarea,
+.fish-transfer-form .form-input {
+  border: 1px solid var(--line-strong) !important;
+  background-color: #ffffff !important;
+  background-image: linear-gradient(180deg, #fbfdfc 0%, #ffffff 60%) !important;
+  color: var(--ink-900) !important;
+  font-weight: 500;
+  box-shadow:
+    0 1px 2px rgba(12, 33, 27, 0.05),
+    0 1px 0 rgba(255, 255, 255, 0.8) inset !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.form-select,
+.modal-content .form-select,
+.purchase-order-modal .form-select,
+.fish-transfer-form .form-select {
+  border: 1px solid var(--line-strong) !important;
+  background-color: #ffffff !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230f6b4f' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 13px center !important;
+  background-size: 16px !important;
+  color: var(--ink-900) !important;
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(12, 33, 27, 0.05) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.premium-select-trigger,
+.modal-content .premium-select-trigger {
+  border: 1px solid var(--line-strong) !important;
+  background: linear-gradient(180deg, #fbfdfc 0%, #ffffff 60%) !important;
+  color: var(--ink-900) !important;
+  font-weight: 500;
+  box-shadow:
+    0 1px 2px rgba(12, 33, 27, 0.05),
+    0 1px 0 rgba(255, 255, 255, 0.8) inset !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.premium-select-trigger svg {
+  color: var(--em-600) !important;
+  transition: transform 0.2s ease;
+}
+.premium-select-trigger[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+.premium-select-trigger .is-placeholder {
+  color: #9fb0a8 !important;
+  font-weight: 400;
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder,
+.ui-input::placeholder,
+.modal-content .form-input::placeholder,
+.modal-content .form-textarea::placeholder {
+  color: #a6b5ae !important;
+  font-weight: 400;
+  opacity: 1;
+}
+
+/* Hover */
+.form-input:hover:not(:focus):not(:disabled),
+.form-textarea:hover:not(:focus):not(:disabled),
+.form-select:hover:not(:focus):not(:disabled),
+.ui-input:hover:not(:focus):not(:disabled),
+.premium-select-trigger:hover:not(:disabled),
+.modal-content .form-input:hover:not(:focus):not(:disabled),
+.modal-content .form-select:hover:not(:focus):not(:disabled),
+.modal-content .form-textarea:hover:not(:focus):not(:disabled) {
+  border-color: rgba(15, 107, 79, 0.38) !important;
+  box-shadow: 0 4px 12px -4px rgba(15, 107, 79, 0.16) !important;
+}
+
+/* Focus: emerald border with soft halo */
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus,
+.ui-input:focus,
+.premium-select-trigger:focus-visible,
+.premium-select-trigger[aria-expanded='true'],
+.modal-content .form-input:focus,
+.modal-content .form-select:focus,
+.modal-content .form-textarea:focus,
+.purchase-order-modal .form-input:focus,
+.purchase-order-modal .form-select:focus,
+.purchase-order-modal .form-textarea:focus {
+  outline: none !important;
+  border-color: var(--em-500) !important;
+  background-color: #ffffff !important;
+  box-shadow:
+    0 0 0 4px rgba(31, 166, 121, 0.14),
+    0 6px 16px -6px rgba(15, 107, 79, 0.25) !important;
+}
+
+/* Disabled / read-only */
+.form-input:disabled,
+.form-select:disabled,
+.form-textarea:disabled,
+.form-input[readonly],
+.modal-content .form-input:disabled,
+.modal-content .form-input[readonly] {
+  background-color: #f3f7f4 !important;
+  color: var(--ink-500) !important;
+  border-style: dashed !important;
+  box-shadow: none !important;
+}
+.form-input:disabled,
+.form-input[readonly],
+.modal-content .form-input:disabled,
+.modal-content .form-input[readonly] {
+  background-image: none !important;
+}
+
+/* Invalid (only after the user has interacted) */
+.form-input:user-invalid,
+.form-select:user-invalid,
+.form-textarea:user-invalid,
+.ui-input[aria-invalid='true'] {
+  border-color: rgba(194, 65, 75, 0.55) !important;
+  box-shadow: 0 0 0 4px rgba(194, 65, 75, 0.1) !important;
+}
+
+/* Native date / time picker icon tinted emerald */
+input[type='date']::-webkit-calendar-picker-indicator,
+input[type='time']::-webkit-calendar-picker-indicator,
+input[type='datetime-local']::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.75;
+  filter: invert(29%) sepia(43%) saturate(1006%) hue-rotate(118deg) brightness(92%) contrast(92%);
+}
+input[type='date']::-webkit-calendar-picker-indicator:hover,
+input[type='time']::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Field icons and hints */
+.form-field-icon {
+  color: var(--em-500) !important;
+}
+.form-hint,
+.modal-content .form-hint,
+.purchase-order-modal .form-hint {
+  color: var(--ink-400) !important;
+  font-size: 0.74rem;
+}
+
+/* Dropdown menu for premium selects */
+.premium-select-menu {
+  border: 1px solid var(--line) !important;
+  border-radius: 14px !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 0 1px rgba(12, 33, 27, 0.03), 0 24px 48px -16px rgba(6, 32, 25, 0.35) !important;
+}
+.premium-select-menu button {
+  border-radius: 10px;
+  color: var(--ink-900) !important;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.premium-select-menu button:hover,
+.premium-select-menu button[aria-selected='true'] {
+  background: linear-gradient(90deg, var(--em-50), #f6fbf8) !important;
+  color: var(--em-700) !important;
+}
+.premium-select-menu button[aria-selected='true'] {
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 var(--gold-500);
+}
+
+/* File upload */
+.upload-file-input {
+  border: 1.5px dashed rgba(15, 107, 79, 0.3) !important;
+  background: linear-gradient(135deg, #ffffff 0%, var(--em-50) 100%) !important;
+  color: var(--ink-500) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 4px 14px -6px rgba(15, 107, 79, 0.18) !important;
+}
+.upload-file-input:hover {
+  border-color: rgba(15, 107, 79, 0.5) !important;
+}
+.upload-file-input:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 4px rgba(31, 166, 121, 0.14) !important;
+}
+.upload-file-input::file-selector-button {
+  border: 1px solid rgba(10, 77, 58, 0.5) !important;
+  background: var(--grad-primary) !important;
+  color: #ffffff !important;
+  box-shadow: var(--shadow-emerald);
+  cursor: pointer;
+}
+
+/* --- Review / summary panels inside forms --- */
+.modal-content [style*='background: rgba(34, 211, 238'],
+.modal-content [style*='background: rgba(8, 126, 164'],
+.modal-content [style*='background: linear-gradient(90deg, rgb(240, 249, 251)'],
+.modal-content [style*='background: linear-gradient(180deg, rgb(240, 249, 251)'],
+.shift-summary {
+  background: linear-gradient(135deg, var(--em-50) 0%, #fbf8ef 100%) !important;
+  border: 1px solid rgba(15, 107, 79, 0.16) !important;
+  color: var(--ink-900) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+}
+.shift-summary svg {
+  color: var(--gold-500) !important;
+}
+.modal-content [style*='border-top: 1px solid rgba(8, 126, 164'] {
+  border-top-color: var(--line-strong) !important;
+}
+.modal-content [style*='border: 1px solid rgba(8, 126, 164'],
+.modal-content [style*='border: 1.5px solid rgba(8, 126, 164'] {
+  border-color: var(--line-strong) !important;
+}
+
+/* Legacy ocean text tints inside modals */
+.modal-content [style*='color: rgb(6, 59, 92)'],
+.modal-content [style*='color: rgb(15, 41, 66)'] {
+  color: var(--ink-900) !important;
+}
+.modal-content [style*='color: rgb(84, 113, 133)'],
+.modal-content [style*='color: rgb(122, 151, 170)'] {
+  color: var(--ink-500) !important;
+}
+.modal-content [style*='color: rgb(8, 126, 164)'],
+.modal-content [style*='color: rgb(11, 114, 133)'] {
+  color: var(--em-600) !important;
+}
+
+/* --- Action bar --- */
+.modal-content label {
+  color: var(--ink-700) !important;
+}
+.modal-content .btn-primary,
+.modal-content .btn-aqua {
+  background: var(--grad-primary) !important;
+  border: 1px solid rgba(10, 77, 58, 0.6) !important;
+  color: #ffffff !important;
+  box-shadow: var(--shadow-emerald) !important;
+}
+.modal-content .btn-primary:hover,
+.modal-content .btn-aqua:hover {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2) inset, 0 14px 26px -10px rgba(15, 107, 79, 0.65) !important;
+}
+.modal-content .btn-secondary {
+  background: #ffffff !important;
+  border: 1px solid var(--line-strong) !important;
+  color: var(--ink-700) !important;
+  box-shadow: var(--shadow-1) !important;
+}
+.modal-content .btn-secondary:hover {
+  background: var(--em-50) !important;
+  border-color: rgba(15, 107, 79, 0.4) !important;
+  color: var(--em-700) !important;
+}
+
+/* Shared <Modal> component */
+.ui-modal-backdrop {
+  background: rgba(6, 32, 25, 0.48) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.ui-modal {
+  border: 1px solid var(--line) !important;
+  box-shadow: 0 40px 90px -24px rgba(6, 32, 25, 0.5) !important;
+}
+.ui-modal__header {
+  border-bottom: 1px solid var(--line) !important;
+}
+.ui-modal__header h2 {
+  color: var(--ink-900) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-input,
+  .form-select,
+  .form-textarea,
+  .premium-select-trigger,
+  .premium-select-trigger svg {
+    transition: none !important;
+  }
+}
+
+/* =========================================================
+   17. Text fitting & visible button labels (desktop + mobile)
+========================================================= */
+
+/* Active pill / tab: restore the emerald fill. The white secondary-pill
+   rule above has equal specificity and was painting it white-on-white. */
+.mobile-scroll-pills .btn.btn-primary,
+.sales-tabs .sales-tab.sales-tab--active,
+.fish-stage-tabs button.active,
+.main-content-area .mobile-scroll-pills .btn.btn-primary,
+.main-content-area .sales-tabs .sales-tab.sales-tab--active {
+  background: var(--grad-primary) !important;
+  border-color: rgba(10, 77, 58, 0.6) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  box-shadow: var(--shadow-emerald) !important;
+}
+.mobile-scroll-pills .btn.btn-primary svg,
+.sales-tabs .sales-tab.sales-tab--active svg,
+.sales-tabs .sales-tab.sales-tab--active span {
+  color: #ffffff !important;
+}
+.mobile-scroll-pills .btn.btn-secondary:hover {
+  background: var(--em-50) !important;
+}
+
+/* Never split a word mid-letter. Text only breaks inside a word when that
+   single word is wider than its whole box (e.g. a very long SKU). */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+small,
+label,
+span,
+strong,
+td,
+th,
+.form-hint,
+.modal-help,
+.btn,
+button,
+.badge {
+  overflow-wrap: break-word !important;
+  word-break: normal !important;
+}
+
+/* Buttons keep their label on one line, sized to fit the text. */
+.btn-sm,
+.btn-icon,
+.mobile-scroll-pills .btn,
+.fms-table .btn,
+.fms-table button,
+.mobile-record-card .btn,
+.mobile-action-btn {
+  white-space: nowrap !important;
+}
+.fms-table .btn,
+.fms-table button.btn-sm {
+  min-width: max-content !important;
+  max-width: none !important;
+}
+.mobile-scroll-pills .btn {
+  flex: 0 0 auto !important;
+  min-width: max-content !important;
+  max-width: none !important;
+}
+
+/* Badges are short labels: keep them on one line. */
+.badge {
+  white-space: nowrap !important;
+  max-width: none !important;
+}
+
+/* Tables: headers on one line, numbers / phones / money / dates never split.
+   The table container already scrolls sideways when columns need room. */
+.fms-table th {
+  white-space: nowrap !important;
+}
+.fms-table td {
+  vertical-align: middle;
+}
+.fms-table td:has(> .btn),
+.fms-table td:has(> .badge),
+.fms-table td:has(> button) {
+  white-space: nowrap;
+}
+.fms-table td,
+.mobile-record-card,
+.inventory-kpi-value,
+.detail-kpi strong {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Keep row dividers uniform: legacy inline colour cells were re-tinting
+   their own bottom border. */
+.fms-table tbody td[style] {
+  border-bottom-color: #edf3ef !important;
+}
+
+/* Mobile record cards: values (phones, amounts, dates) stay whole. */
+.mobile-record-card span,
+.mobile-record-card strong {
+  overflow-wrap: break-word !important;
+}
+.mobile-record-card .btn,
+.mobile-record-card button.btn-sm {
+  min-width: max-content !important;
+  max-width: none !important;
+}
+
+/* =========================================================
+   18. Liquid bottom dock (mobile / tablet, hidden >= 1024px)
+   A white liquid bulge rises under the active tab, flows to the
+   next tab with an elastic stretch, and the active icon pops up
+   into a floating emerald bubble.
+========================================================= */
+.mobile-bottom-dock.liquid-dock {
+  position: fixed !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 1000 !important;
+  height: calc(68px + env(safe-area-inset-bottom)) !important;
+  padding: 0 6px env(safe-area-inset-bottom) !important;
+  align-items: stretch !important;
+  overflow: visible !important;
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-top: 0 !important;
+  box-shadow: 0 -1px 0 rgba(12, 33, 27, 0.06), 0 -12px 30px -14px rgba(12, 33, 27, 0.22) !important;
+}
+
+.liquid-dock__track {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 68px;
+}
+
+/* --- The bulge --- */
+.liquid-dock__bulge {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% - 1px); /* overlap 1px to fuse with the bar edge */
+  height: 28px;
+  pointer-events: none;
+  z-index: 1;
+  /* Clip only the bottom edge so the blob's shadow never draws a seam on the bar. */
+  clip-path: inset(-40px -40px 0 -40px);
+  transition: transform 0.62s cubic-bezier(0.68, -0.35, 0.26, 1.35);
+  will-change: transform;
+}
+
+.liquid-dock__blob {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: #ffffff;
+  filter: drop-shadow(0 -5px 6px rgba(12, 33, 27, 0.09));
+  transform-origin: 50% 100%;
+  animation: liquid-flow 0.7s cubic-bezier(0.3, 0.7, 0.4, 1) both;
+}
+
+/* Squash and stretch while the liquid travels, then settle with a wobble. */
+@keyframes liquid-flow {
+  0% { transform: scale(1.9, 0.15); }
+  30% { transform: scale(1.45, 0.75); }
+  55% { transform: scale(0.88, 1.18); }
+  75% { transform: scale(1.06, 0.94); }
+  90% { transform: scale(0.98, 1.03); }
+  100% { transform: scale(1, 1); }
+}
+
+/* --- Items --- */
+.liquid-dock__item {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: none !important;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 0 2px 10px !important;
+  border: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.liquid-dock__icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 30px;
+  border-radius: 999px;
+  color: var(--ink-400);
+  transition:
+    transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1),
+    width 0.35s ease,
+    height 0.35s ease,
+    background 0.3s ease,
+    color 0.3s ease,
+    box-shadow 0.35s ease;
+}
+
+.liquid-dock__label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap !important;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: var(--ink-400) !important;
+  transition: color 0.3s ease, transform 0.4s ease;
+}
+
+.liquid-dock__item:not(.is-active):active .liquid-dock__icon {
+  transform: scale(0.88);
+}
+
+/* --- Active: icon pops up into a floating emerald bubble --- */
+.liquid-dock__item.is-active .liquid-dock__icon {
+  width: 48px;
+  height: 48px;
+  color: #ffffff !important;
+  background: var(--grad-primary);
+  transform: translateY(-22px);
+  box-shadow:
+    0 0 0 4px #ffffff,
+    0 0 0 5.5px rgba(217, 183, 102, 0.55),
+    0 12px 22px -8px rgba(15, 107, 79, 0.7);
+  animation: liquid-pop 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.liquid-dock__item.is-active .liquid-dock__icon svg {
+  color: #ffffff !important;
+  stroke: #ffffff;
+}
+
+/* Ripple ring that spreads from the bubble when it lands */
+.liquid-dock__item.is-active .liquid-dock__icon::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 2px solid rgba(31, 166, 121, 0.55);
+  animation: liquid-ripple 0.9s 0.25s ease-out both;
+  pointer-events: none;
+}
+
+.liquid-dock__item.is-active .liquid-dock__label {
+  color: var(--em-600) !important;
+  font-weight: 800;
+}
+
+@keyframes liquid-pop {
+  0% { transform: translateY(6px) scale(0.55); }
+  45% { transform: translateY(-28px) scale(1.12, 0.92); }
+  70% { transform: translateY(-19px) scale(0.96, 1.05); }
+  100% { transform: translateY(-22px) scale(1); }
+}
+
+@keyframes liquid-ripple {
+  0% { transform: scale(1); opacity: 0.9; }
+  100% { transform: scale(1.55); opacity: 0; }
+}
+
+.liquid-dock__item:focus-visible {
+  outline: none;
+}
+.liquid-dock__item:focus-visible .liquid-dock__icon {
+  outline: 2px solid var(--em-400);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liquid-dock__bulge,
+  .liquid-dock__icon,
+  .liquid-dock__label {
+    transition: none !important;
+  }
+  .liquid-dock__blob,
+  .liquid-dock__item.is-active .liquid-dock__icon,
+  .liquid-dock__item.is-active .liquid-dock__icon::after {
+    animation: none !important;
+  }
+}
+
+/* =========================================================
+   19. Desktop sidebar icon rail (collapsed state, >= 1024px)
+   The menu button toggles between the full sidebar and this
+   slim rail; icons stay visible with hover tooltips.
+========================================================= */
+@media (min-width: 1024px) {
+  .glass-sidebar.glass-sidebar--rail {
+    width: 78px !important;
+    padding: 18px 12px !important;
+    overflow: visible !important;
+  }
+
+  /* Brand: mark only, centred */
+  .glass-sidebar.glass-sidebar--rail > div:first-child > div:first-child {
+    justify-content: center !important;
+  }
+  .glass-sidebar.glass-sidebar--rail .sidebar-brand-text {
+    display: none !important;
+  }
+
+  /* Nav items: centred icon tiles */
+  .glass-sidebar.glass-sidebar--rail nav button.sidebar-nav-item {
+    position: relative;
+    justify-content: center !important;
+    padding: 12px 0 !important;
+    border-radius: 14px !important;
+  }
+  .glass-sidebar.glass-sidebar--rail nav button.sidebar-nav-item .sidebar-nav-main {
+    justify-content: center;
+    gap: 0 !important;
+  }
+  .glass-sidebar.glass-sidebar--rail nav button .sidebar-nav-label,
+  .glass-sidebar.glass-sidebar--rail nav button .sidebar-nav-badge {
+    display: none !important;
+  }
+  .glass-sidebar.glass-sidebar--rail nav button.sidebar-nav-item svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Tooltip with the page name on hover / keyboard focus */
+  .glass-sidebar.glass-sidebar--rail nav button.sidebar-nav-item::after,
+  .glass-sidebar.glass-sidebar--rail .sidebar-finance-mini::after {
+    content: attr(data-label);
+    position: absolute;
+    left: calc(100% + 14px);
+    top: 50%;
+    z-index: 5;
+    padding: 7px 11px;
+    border-radius: 10px;
+    border: 1px solid rgba(217, 183, 102, 0.28);
+    background: var(--em-800);
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 12px 28px -10px rgba(6, 32, 25, 0.6);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-6px, -50%);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+  .glass-sidebar.glass-sidebar--rail nav button.sidebar-nav-item:hover::after,
+  .glass-sidebar.glass-sidebar--rail nav button.sidebar-nav-item:focus-visible::after,
+  .glass-sidebar.glass-sidebar--rail .sidebar-finance-mini:hover::after {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+
+  /* Full finance card hidden; compact profit tile shown instead */
+  .glass-sidebar.glass-sidebar--rail > .sidebar-finance {
+    display: none !important;
+  }
+}
+
+/* Icon wrapper (both modes) so the low-stock dot can sit on the icon */
+.glass-sidebar nav button .sidebar-nav-icon {
+  position: relative;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+.sidebar-nav-dot {
+  display: none;
+}
+.glass-sidebar.glass-sidebar--rail .sidebar-nav-dot {
+  display: block;
+  position: absolute;
+  top: -3px;
+  right: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold-400);
+  box-shadow: 0 0 0 2px var(--em-800), 0 0 8px rgba(217, 183, 102, 0.7);
+}
+
+.sidebar-finance-mini {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin: 16px auto 0;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--gold-400);
+  cursor: default;
+}
+.sidebar-finance-mini__dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--em-800);
+}
+.sidebar-finance-mini__dot.is-profit { background: #4ade80; }
+.sidebar-finance-mini__dot.is-loss { background: #f87171; }
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-sidebar.glass-sidebar--rail nav button.sidebar-nav-item::after {
+    transition: none;
+  }
+}

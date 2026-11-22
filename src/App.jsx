@@ -4,6 +4,21 @@ import BackgroundWaves from './components/BackgroundWaves';
 import Navbar from './components/Navbar';
 import AppSkeleton from './components/AppSkeleton';
 import Sidebar from './components/Sidebar';
+import {
+  DESKTOP_MIN_WIDTH,
+  SIDEBAR_EXPANDED_WIDTH,
+  SIDEBAR_RAIL_WIDTH,
+} from './shared/config/layout';
+
+const SIDEBAR_PREF_KEY = 'fms.sidebar';
+
+function readSidebarExpandedPref() {
+  try {
+    return window.localStorage.getItem(SIDEBAR_PREF_KEY) !== 'collapsed';
+  } catch {
+    return true;
+  }
+}
 import MobileBottomNav from './components/MobileBottomNav';
 import Toast from './components/Toast';
 
@@ -37,6 +52,7 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= DESKTOP_MIN_WIDTH);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showFeedingModal, setShowFeedingModal] = useState(false);
   const [showHarvestModal, setShowHarvestModal] = useState(false);
@@ -98,19 +114,31 @@ export default function App() {
     }
   };
 
-  // Desktop sidebar auto-open, mobile auto-close
+  // Desktop: sidebar is either expanded or collapsed to an icon rail (choice remembered).
+  // Mobile: sidebar is a slide-in drawer that starts closed.
+  // State only resets when the viewport crosses the desktop breakpoint.
   useEffect(() => {
+    let lastDesktop = null;
     const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setSidebarOpen(true);
-      } else {
-        setSidebarOpen(false);
-      }
+      const desktop = window.innerWidth >= DESKTOP_MIN_WIDTH;
+      if (desktop === lastDesktop) return;
+      lastDesktop = desktop;
+      setIsDesktop(desktop);
+      setSidebarOpen(desktop ? readSidebarExpandedPref() : false);
     };
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+    if (!isDesktop) return;
+    try {
+      window.localStorage.setItem(SIDEBAR_PREF_KEY, sidebarOpen ? 'expanded' : 'collapsed');
+    } catch {
+      /* storage unavailable: preference simply isn't remembered */
+    }
+  }, [isDesktop, sidebarOpen]);
 
   // Shortcut key for search (Ctrl+K or Cmd+K)
   useEffect(() => {
@@ -300,7 +328,11 @@ export default function App() {
       <BackgroundWaves />
 
       {/* Deep Ocean Sidebar Navigation */}
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar
+        isOpen={sidebarOpen || isDesktop}
+        collapsed={isDesktop && !sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
 
       {/* Main Content Area */}
       <div
@@ -309,7 +341,9 @@ export default function App() {
           display: 'flex',
           flexDirection: 'column',
           transition: 'padding-left 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-          paddingLeft: sidebarOpen && window.innerWidth >= 1024 ? '260px' : '0',
+          paddingLeft: isDesktop
+            ? `${sidebarOpen ? SIDEBAR_EXPANDED_WIDTH : SIDEBAR_RAIL_WIDTH}px`
+            : '0',
           position: 'relative',
           zIndex: 'auto',
           width: '100%',

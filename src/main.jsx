@@ -6,6 +6,7 @@ import { Button } from './shared/ui';
 import './styles/theme.css';
 import './style.css';
 import './styles/design-system.css';
+import './styles/green-theme.css';
 
 class AppErrorBoundary extends React.Component {
   state = { error: null };

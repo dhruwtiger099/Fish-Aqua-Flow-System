@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useFarm } from '../context/FarmContext';
 import { formatCurrency } from '../shared/utils/format';
+import { SIDEBAR_EXPANDED_WIDTH, SIDEBAR_RAIL_WIDTH } from '../shared/config/layout';
 import {
   LayoutDashboard,
   Fish,
@@ -19,7 +20,7 @@ import {
   TrendingDown,
 } from 'lucide-react';
 
-export default function Sidebar({ isOpen, onClose }) {
+export default function Sidebar({ isOpen, collapsed = false, onClose }) {
   const {
     activeTab,
     setActiveTab,
@@ -92,21 +93,23 @@ export default function Sidebar({ isOpen, onClose }) {
 
       {/* Sidebar Container */}
       <aside
+        aria-label="Main navigation"
         style={{
-          width: '260px',
+          width: `${collapsed ? SIDEBAR_RAIL_WIDTH : SIDEBAR_EXPANDED_WIDTH}px`,
           height: '100vh',
           position: 'fixed',
           top: 0,
           left: 0,
           zIndex: 110,
           transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
-          transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+          transition:
+            'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
           padding: '20px 16px',
         }}
-        className="glass-sidebar"
+        className={`glass-sidebar${collapsed ? ' glass-sidebar--rail' : ''}`}
       >
         {/* Top: Logo & Close Button (mobile) */}
         <div>
@@ -137,7 +140,7 @@ export default function Sidebar({ isOpen, onClose }) {
               >
                 <Droplets size={20} />
               </div>
-              <div>
+              <div className="sidebar-brand-text">
                 <div
                   className="sidebar-brand-title"
                   style={{
@@ -185,6 +188,9 @@ export default function Sidebar({ isOpen, onClose }) {
                   key={item.id}
                   onClick={() => handleSelect(item.id)}
                   className={`sidebar-nav-item${isActive ? ' sidebar-nav-item--active' : ''}`}
+                  data-label={item.label}
+                  aria-label={collapsed ? item.label : undefined}
+                  aria-current={isActive ? 'page' : undefined}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -217,19 +223,29 @@ export default function Sidebar({ isOpen, onClose }) {
                     }
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Icon
-                      size={18}
-                      color={isActive ? '#22D3EE' : '#88B7CA'}
-                      style={{ transition: 'color 0.2s ease' }}
-                    />
-                    <span style={{ fontSize: '0.9rem', fontWeight: isActive ? 700 : 500 }}>
+                  <div
+                    className="sidebar-nav-main"
+                    style={{ display: 'flex', alignItems: 'center', gap: '12px' }}
+                  >
+                    <span className="sidebar-nav-icon">
+                      <Icon
+                        size={18}
+                        color={isActive ? '#22D3EE' : '#88B7CA'}
+                        style={{ transition: 'color 0.2s ease' }}
+                      />
+                      {item.badge && <i className="sidebar-nav-dot" aria-hidden="true" />}
+                    </span>
+                    <span
+                      className="sidebar-nav-label"
+                      style={{ fontSize: '0.9rem', fontWeight: isActive ? 700 : 500 }}
+                    >
                       {item.label}
                     </span>
                   </div>
 
                   {item.badge && (
                     <span
+                      className="sidebar-nav-badge"
                       style={{
                         fontSize: '0.68rem',
                         fontWeight: 700,
@@ -255,8 +271,24 @@ export default function Sidebar({ isOpen, onClose }) {
           </nav>
         </div>
 
+        {/* Rail mode: compact profit indicator in place of the full card */}
+        {collapsed && (
+          <div
+            className="sidebar-finance-mini"
+            data-label={`Net profit: ${formatCurrency(financialSummary.netProfit)}`}
+            title={`Net profit: ${formatCurrency(financialSummary.netProfit)}`}
+          >
+            <Wallet size={18} />
+            <i
+              className={`sidebar-finance-mini__dot${financialSummary.isProfitable ? ' is-profit' : ' is-loss'}`}
+              aria-hidden="true"
+            />
+          </div>
+        )}
+
         {/* Bottom Card: Financial Overview (Cost & Profit) */}
         <div
+          className="sidebar-finance"
           style={{
             background: 'rgba(255, 255, 255, 0.07)',
             border: '1px solid rgba(255, 255, 255, 0.14)',
