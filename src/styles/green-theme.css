@@ -1756,3 +1756,128 @@ button,
     transition: none;
   }
 }
+
+/* ------------------------------------------------------------------
+   Themed dropdown (PremiumSelect) — replaces native <select> lists
+   which are drawn by the OS and ignore the app theme.
+------------------------------------------------------------------- */
+.premium-select-trigger .premium-select-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--em-500);
+}
+.premium-select-trigger .premium-select-value {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.premium-select-trigger .premium-select-chevron {
+  flex: 0 0 auto;
+  color: var(--ink-400);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.premium-select-trigger[aria-expanded='true'] .premium-select-chevron {
+  transform: rotate(180deg);
+  color: var(--em-500);
+}
+
+.premium-select-menu {
+  max-height: 260px;
+  padding: 6px !important;
+  border-radius: 14px !important;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+  animation: premium-select-in 0.14s ease-out;
+  transform-origin: top center;
+}
+.premium-select-wrap.is-drop-up .premium-select-menu {
+  top: auto;
+  bottom: calc(100% + 6px);
+  transform-origin: bottom center;
+}
+@keyframes premium-select-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.premium-select-wrap.is-drop-up .premium-select-menu {
+  animation-name: premium-select-in-up;
+}
+@keyframes premium-select-in-up {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+.premium-select-menu button {
+  margin: 1px 0;
+  font-weight: 600;
+  color: var(--ink-900) !important;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.premium-select-menu button.is-active,
+.premium-select-menu button:focus-visible {
+  background: var(--em-50) !important;
+  color: var(--em-700) !important;
+}
+.premium-select-menu button.is-selected,
+.premium-select-menu button[aria-selected='true'] {
+  background: var(--em-100) !important;
+  color: var(--em-700) !important;
+  font-weight: 700;
+}
+.premium-select-menu button svg {
+  flex: 0 0 auto;
+  color: var(--em-500);
+}
+
+/* Toolbar variant: inline filter chips (Reports FY / Cycle, Sensors pond). */
+.premium-select--toolbar {
+  width: auto;
+}
+.premium-select--toolbar .premium-select-trigger {
+  min-height: 44px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+.premium-select--toolbar .premium-select-value {
+  max-width: 230px;
+}
+.premium-select--toolbar .premium-select-menu {
+  right: auto;
+  width: max-content;
+  min-width: 100%;
+  max-width: min(340px, calc(100vw - 32px));
+}
+.premium-select--toolbar .premium-select-menu button span {
+  white-space: nowrap;
+}
+
+/* Compact variant: rows-per-page in pagination bars. */
+.premium-select--compact {
+  width: auto;
+}
+.premium-select--compact .premium-select-trigger {
+  min-height: 30px;
+  padding: 0 8px 0 10px;
+  gap: 6px;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+.premium-select--compact .premium-select-menu {
+  min-width: 100%;
+  width: max-content;
+  right: auto;
+  padding: 4px !important;
+  border-radius: 10px !important;
+}
+.premium-select--compact .premium-select-menu button {
+  padding: 7px 10px;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 767px) {
+  .premium-select--toolbar .premium-select-value {
+    max-width: 160px;
+  }
+}

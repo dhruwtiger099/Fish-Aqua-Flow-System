@@ -1099,7 +1099,7 @@ h6 {
   font-weight: 700;
   white-space: nowrap;
 }
-.data-limit-control button {
+.data-limit-control > button {
   width: 28px;
   height: 28px;
   border: 1px solid rgba(8, 126, 164, 0.14);
@@ -1110,7 +1110,7 @@ h6 {
   line-height: 1;
   cursor: pointer;
 }
-.data-limit-control button:disabled {
+.data-limit-control > button:disabled {
   opacity: 0.35;
   cursor: not-allowed;
 }

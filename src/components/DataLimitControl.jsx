@@ -1,6 +1,16 @@
 import React from 'react';
 import { useFarm } from '../context/FarmContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import PremiumSelect from './PremiumSelect';
+
+const ROW_OPTIONS = [
+  { value: '10', label: '10 rows' },
+  { value: '25', label: '25 rows' },
+  { value: '50', label: '50 rows' },
+  { value: '100', label: '100 rows' },
+  { value: '250', label: '250 rows' },
+  { value: '999999', label: 'All rows' },
+];
 
 export default function DataLimitControl({ total = 0 }) {
   const { dataLimit, updateDataLimit, dataPage, updateDataPage } = useFarm();
@@ -38,18 +48,13 @@ export default function DataLimitControl({ total = 0 }) {
       >
         <ChevronRight size={16} aria-hidden="true" />
       </button>
-      <select
-        value={dataLimit}
+      <PremiumSelect
+        variant="compact"
+        ariaLabel="Rows per page"
+        value={String(dataLimit)}
         onChange={(e) => updateDataLimit(e.target.value)}
-        aria-label="Rows per page"
-      >
-        <option value="10">10 rows</option>
-        <option value="25">25 rows</option>
-        <option value="50">50 rows</option>
-        <option value="100">100 rows</option>
-        <option value="250">250 rows</option>
-        <option value="999999">All rows</option>
-      </select>
+        options={ROW_OPTIONS}
+      />
       <span>{total === 1 ? '1 record' : `${from}-${to} of ${total} records`}</span>
     </div>
   );

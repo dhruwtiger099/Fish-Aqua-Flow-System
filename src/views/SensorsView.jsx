@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useFarm } from '../context/FarmContext';
+import PremiumSelect from '../components/PremiumSelect';
 import {
   Activity,
   Droplets,
@@ -89,18 +90,13 @@ export default function SensorsView() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <select
-            className="form-select"
-            style={{ width: 'auto', minHeight: '40px' }}
+          <PremiumSelect
+            variant="toolbar"
+            ariaLabel="Pond"
             value={selectedPondId}
             onChange={(e) => setSelectedPondId(e.target.value)}
-          >
-            {ponds.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+            options={ponds.map((p) => ({ value: p.id, label: p.name }))}
+          />
 
           <button onClick={handleSimulateRefresh} className="btn btn-secondary">
             <RefreshCw size={15} />

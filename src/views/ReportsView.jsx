@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useFarm } from '../context/FarmContext';
+import PremiumSelect from '../components/PremiumSelect';
 import {
   BarChart3,
   Download,
@@ -373,77 +374,28 @@ export default function ReportsView() {
             <p style={{ color: '#547185', fontSize: '.86rem', marginTop: 4 }}> </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '10px 12px',
-                border: '1px solid rgba(8,126,164,.18)',
-                borderRadius: 12,
-                background: '#fff',
-                color: '#547185',
-                fontSize: '.8rem',
-                fontWeight: 700,
-              }}
-            >
-              <CalendarDays size={16} color="#087EA4" />
-              <select
-                value={selectedFY}
-                onChange={(event) => setSelectedFY(event.target.value)}
-                style={{
-                  border: 0,
-                  outline: 0,
-                  background: 'transparent',
-                  color: '#063B5C',
-                  fontWeight: 800,
-                }}
-                aria-label="Financial year"
-              >
-                <option>All FY</option>
-                {fyOptions
-                  .filter((item) => item !== 'All FY')
-                  .map((item) => (
-                    <option key={item}>{item}</option>
-                  ))}
-              </select>
-            </label>
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '10px 12px',
-                border: '1px solid rgba(8,126,164,.18)',
-                borderRadius: 12,
-                background: '#fff',
-                color: '#547185',
-                fontSize: '.8rem',
-                fontWeight: 700,
-              }}
-            >
-              <Fish size={16} color="#087EA4" />
-              <select
-                value={selectedCycle}
-                onChange={(event) => setSelectedCycle(event.target.value)}
-                style={{
-                  border: 0,
-                  outline: 0,
-                  background: 'transparent',
-                  color: '#063B5C',
-                  fontWeight: 800,
-                  maxWidth: 230,
-                }}
-                aria-label="Cycle"
-              >
-                <option>All Cycles</option>
-                {cycleOptions
-                  .filter((item) => item !== 'All Cycles')
-                  .map((item) => (
-                    <option key={item}>{item}</option>
-                  ))}
-              </select>
-            </label>
+            <PremiumSelect
+              variant="toolbar"
+              ariaLabel="Financial year"
+              icon={<CalendarDays size={16} />}
+              value={selectedFY}
+              onChange={(event) => setSelectedFY(event.target.value)}
+              options={[
+                'All FY',
+                ...fyOptions.filter((item) => item !== 'All FY'),
+              ].map((item) => ({ value: item, label: item }))}
+            />
+            <PremiumSelect
+              variant="toolbar"
+              ariaLabel="Cycle"
+              icon={<Fish size={16} />}
+              value={selectedCycle}
+              onChange={(event) => setSelectedCycle(event.target.value)}
+              options={[
+                'All Cycles',
+                ...cycleOptions.filter((item) => item !== 'All Cycles'),
+              ].map((item) => ({ value: item, label: item }))}
+            />
             <button onClick={handleExportCSV} className="btn btn-aqua">
               <Download size={16} /> Export report
             </button>
